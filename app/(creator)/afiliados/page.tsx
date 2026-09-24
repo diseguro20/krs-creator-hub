@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Zap,
@@ -82,7 +82,7 @@ export default function AffiliateHubPage() {
     setReceipt(null);
 
     if (gameId === "all") {
-      setWithdrawAmount(totalAffiliateBalance.toFixed(2));
+      setWithdrawAmount(currentAvailableBalance.toFixed(2));
     } else {
       const g = affiliateStats.find((s) => s.game_id === gameId);
       setWithdrawAmount(g ? g.available_balance.toFixed(2) : "0.00");
@@ -110,7 +110,7 @@ export default function AffiliateHubPage() {
     // Limit check
     const maxAvailable =
       withdrawGameId === "all"
-        ? totalAffiliateBalance
+        ? currentAvailableBalance
         : affiliateStats.find((g) => g.game_id === withdrawGameId)?.available_balance || 0;
 
     if (amountNum > maxAvailable) {
@@ -151,17 +151,73 @@ export default function AffiliateHubPage() {
     }
   };
 
+  // Real-time server sync for webhooks from the 4 games
+  const [liveServerConversions, setLiveServerConversions] = useState<any[]>([]);
+  const [liveServerBalance, setLiveServerBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSync = async () => {
+      try {
+        const res = await fetch(`/api/affiliates/sync?code=${customTag || "afiliado"}`);
+        const data = await res.json();
+        if (data.success && isMounted) {
+          if (data.conversions && Array.isArray(data.conversions)) {
+            setLiveServerConversions(data.conversions);
+          }
+          if (data.server_balance && typeof data.server_balance.available_balance === "number") {
+            setLiveServerBalance(data.server_balance.available_balance);
+          }
+        }
+      } catch (e) {
+        // Non-blocking fallback
+      }
+    };
+
+    fetchSync();
+    const timer = setInterval(fetchSync, 10000);
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
+  }, [customTag]);
+
   // Total consolidated stats
   const totalClicks = affiliateStats.reduce((acc, g) => acc + g.clicks, 0);
   const totalSignups = affiliateStats.reduce((acc, g) => acc + g.signups, 0);
   const totalDeposited = affiliateStats.reduce((acc, g) => acc + g.total_deposited, 0);
   const totalCommissionsEarned = affiliateStats.reduce((acc, g) => acc + g.commission_earned, 0);
 
+  // Combined conversions (local + live server webhooks)
+  const allConversions: AffiliateConversionRecord[] = [
+    ...liveServerConversions.map((sc) => ({
+      id: sc.id,
+      game_id: sc.game_slug,
+      game_name: sc.game_name,
+      game_slug: sc.game_slug,
+      lead_name: sc.player_name,
+      lead_username: sc.player_id,
+      type: sc.event_type as any,
+      amount_deposited: sc.amount_deposited,
+      commission_amount: sc.commission_amount,
+      status: "available" as const,
+      created_at: sc.received_at,
+    })),
+    ...affiliateConversions,
+  ];
+
+  const currentAvailableBalance =
+    liveServerBalance !== null && liveServerBalance > totalAffiliateBalance
+      ? liveServerBalance
+      : totalAffiliateBalance;
+
   // Filter conversions
   const filteredConversions =
     selectedGameFilter === "all"
-      ? affiliateConversions
-      : affiliateConversions.filter((c) => c.game_id === selectedGameFilter);
+      ? allConversions
+      : allConversions.filter(
+          (c) => c.game_id === selectedGameFilter || c.game_slug === selectedGameFilter
+        );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -200,7 +256,7 @@ export default function AffiliateHubPage() {
             </div>
 
             <div className="text-3xl sm:text-4xl font-pixel text-emerald-400 font-black my-2 drop-shadow-[0_0_12px_rgba(0,245,155,0.6)]">
-              {formatCurrency(totalAffiliateBalance)}
+              {formatCurrency(currentAvailableBalance)}
             </div>
 
             <div className="text-[11px] text-zinc-400 mb-3 font-medium flex items-center gap-1.5">
@@ -210,7 +266,7 @@ export default function AffiliateHubPage() {
 
             <button
               onClick={() => handleOpenWithdraw("all")}
-              disabled={totalAffiliateBalance <= 0}
+              disabled={currentAvailableBalance <= 0}
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/30 transition active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Zap className="w-4 h-4 fill-dark-950" />

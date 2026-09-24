@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { recordServerConversion } from "@/lib/server-store";
+import { saveCreatorToFirebase } from "@/lib/firebase";
 
 // Standard secret key (can also be loaded from process.env.KRS_WEBHOOK_SECRET)
 const KRS_MASTER_SECRET = process.env.KRS_WEBHOOK_SECRET || "krs_sec_live_99f821a084c7e481b3";
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const conversionRecord = {
+    const conversionRecord: any = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       game_slug: game_slug || "game-krs",
       game_name: game_name || "Jogo Oficial KRS",
@@ -74,11 +76,26 @@ export async function POST(req: NextRequest) {
       received_at: new Date().toISOString(),
     };
 
+    // Save to persistent server store
+    const updatedBalance = recordServerConversion(conversionRecord);
+
+    // Sync to cloud Firebase if configured
+    try {
+      await saveCreatorToFirebase(conversionRecord.affiliate_code, {
+        latest_conversion: conversionRecord,
+        available_balance: updatedBalance.available_balance,
+        total_leads: updatedBalance.total_leads,
+      });
+    } catch (e) {
+      // Non-blocking fallback
+    }
+
     return NextResponse.json(
       {
         success: true,
         message: `Comissão de R$ ${finalCommission.toFixed(2)} creditada com sucesso para o afiliado '${affiliate_code}'!`,
         data: conversionRecord,
+        updated_balance: updatedBalance,
       },
       { status: 200 }
     );
