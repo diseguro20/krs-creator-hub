@@ -148,7 +148,7 @@ interface KrsStoreContextType {
 
 const KrsStoreContext = createContext<KrsStoreContextType | null>(null);
 
-const STORAGE_KEY = "krs_creator_hub_v4_prod";
+const STORAGE_KEY = "krs_creator_hub_v6_clean";
 
 export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   // Initialize state (null by default so new visitors are not automatically logged in)
@@ -183,14 +183,49 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   // Load from LocalStorage if available (Client-side only)
   useEffect(() => {
     try {
+      // 1. Force purge any legacy demo storage keys
+      if (typeof window !== "undefined") {
+        const legacyKeys = [
+          "krs_creator_hub_v4_prod",
+          "krs_creator_hub_v5_auth",
+          "krs_creator_hub_v3",
+          "krs_creator_hub_v2",
+          "krs_creator_hub_data",
+          "krs_creator_hub_state",
+          "krs_user_profile",
+        ];
+        legacyKeys.forEach((key) => {
+          try {
+            localStorage.removeItem(key);
+          } catch (_) {}
+        });
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.currentUser && parsed.currentUser.email) {
-          setCurrentUser(parsed.currentUser);
+        
+        // Strict verification: Reject ANY demo user preset
+        const user = parsed.currentUser;
+        const isDemoPreset =
+          !user ||
+          !user.email ||
+          user.id === "usr_creator_01" ||
+          user.email === "lucas@creatorhub.gg" ||
+          user.name === "Lucas Alencar" ||
+          user.username === "lucas_alencar" ||
+          (user.email && user.email.includes("@creatorhub.gg"));
+
+        if (!isDemoPreset) {
+          setCurrentUser(user);
         } else {
           setCurrentUser(null);
+          delete parsed.currentUser;
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          } catch (_) {}
         }
+
         if (parsed.games) setGames(parsed.games);
         if (parsed.campaigns) setCampaigns(parsed.campaigns);
         if (parsed.creatorCampaigns) setCreatorCampaigns(parsed.creatorCampaigns);
@@ -367,13 +402,10 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const switchUserRole = (role: "ADMIN" | "INFLUENCER" | "CAPTADOR") => {
-    let newUser: UserProfile | CreatorProfile | CaptadorProfile = DEMO_CREATOR;
-    if (role === "ADMIN") newUser = DEMO_ADMIN;
-    if (role === "CAPTADOR") newUser = DEMO_CAPTADOR;
-    if (role === "INFLUENCER") newUser = DEMO_CREATOR;
-
-    setCurrentUser(newUser);
-    persist({ currentUser: newUser });
+    if (!currentUser) return;
+    const updated = { ...currentUser, role };
+    setCurrentUser(updated as any);
+    persist({ currentUser: updated });
   };
 
   const updateCurrentUser = (data: Partial<UserProfile | CreatorProfile | CaptadorProfile>) => {
@@ -772,7 +804,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
 
   const resetAllData = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setCurrentUser(DEMO_CREATOR);
+    setCurrentUser(null);
     setGames(SEED_GAMES);
     setCampaigns(SEED_CAMPAIGNS);
     setSubmissions(SEED_SUBMISSIONS);
