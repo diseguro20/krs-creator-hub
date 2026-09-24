@@ -48,15 +48,20 @@ export function AdminSidebar() {
     <aside className="hidden lg:flex w-64 flex-col justify-between border-r border-white/5 bg-dark-950 p-4 h-screen sticky top-0 overflow-y-auto">
       <div>
         {/* Brand Header */}
-        <div className="flex items-center gap-2.5 px-3 py-2 mb-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-dark-950 font-black shadow-lg shadow-amber-500/20">
-            <ShieldAlert className="w-5 h-5 text-dark-950" />
+        <div className="flex items-center gap-2.5 px-2 py-1.5 mb-6 select-none">
+          <div className="relative shrink-0 flex items-center justify-center">
+            <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-md" />
+            <img
+              src="/krs-logo.png"
+              alt="KRS Criadores"
+              className="relative z-10 h-11 w-11 object-contain animate-sophisticated-float"
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-base font-black tracking-tight text-white flex items-center gap-1">
+            <span className="text-sm font-black tracking-tight text-white flex items-center gap-1 leading-tight">
               KRS <span className="text-amber-400">ADMIN</span>
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500">
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
               OPERATIONS
             </span>
           </div>

@@ -26,16 +26,21 @@ export function CaptadorSidebar() {
     <aside className="hidden lg:flex w-64 flex-col justify-between border-r border-white/5 bg-dark-950 p-4 h-screen sticky top-0">
       <div>
         {/* Brand Header */}
-        <Link href="/captador" className="flex items-center gap-2.5 px-3 py-2 mb-6 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-neon text-dark-950 font-black shadow-lg shadow-brand-neon/20 group-hover:scale-105 transition">
-            <Users className="w-5 h-5 text-dark-950" />
+        <Link href="/captador" className="flex items-center gap-2.5 px-2 py-1.5 mb-6 group select-none">
+          <div className="relative shrink-0 flex items-center justify-center">
+            <div className="absolute inset-0 bg-brand-neon/20 rounded-full blur-md" />
+            <img
+              src="/krs-logo.png"
+              alt="KRS Criadores"
+              className="relative z-10 h-11 w-11 object-contain animate-sophisticated-float group-hover:scale-105 transition-transform"
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-base font-black tracking-tight text-white flex items-center gap-1">
+            <span className="text-sm font-black tracking-tight text-white flex items-center gap-1 leading-tight">
               KRS <span className="text-brand-neon">CAPTADOR</span>
             </span>
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-500">
-              HUB
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-zinc-400">
+              REDE & AFILIADOS
             </span>
           </div>
         </Link>

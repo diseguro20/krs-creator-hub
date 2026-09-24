@@ -460,11 +460,16 @@ export default function LandingPage() {
       <footer className="border-t border-white/5 bg-[#040805] py-8 px-4 sm:px-6 lg:px-8 text-xs text-zinc-500 mt-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-emerald-500 text-dark-950 font-pixel flex items-center justify-center text-xs font-black">
-              K
+            <div className="relative flex items-center justify-center shrink-0">
+              <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-sm" />
+              <img
+                src="/krs-logo.png"
+                alt="KRS Criadores"
+                className="relative z-10 h-10 w-10 sm:h-12 sm:w-12 object-contain animate-sophisticated-float"
+              />
             </div>
             <div>
-              <div className="font-bold text-white text-sm">KRS CREATOR HUB</div>
+              <div className="font-bold text-white text-sm">KRS CRIADORES</div>
               <div className="text-[11px]">© 2026 KRS Gaming. Todos os direitos reservados.</div>
             </div>
           </div>

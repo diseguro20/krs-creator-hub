@@ -33,23 +33,31 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#0a0f0c] md:bg-[#0a0f0c]/95 md:backdrop-blur-xl border-b border-emerald-500/20 px-3 sm:px-6 py-2.5 shadow-lg shadow-black/50">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* Left: Brand Logo styled with gaming badge aesthetic */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-emerald-600 to-dark-900 border border-emerald-400/50 shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
-            <span className="font-pixel text-xs sm:text-sm text-dark-950 font-black">K</span>
+        {/* Left: Brand Logo styled with grand 3D gaming badge aesthetic */}
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group select-none py-0.5">
+          <div className="relative flex items-center justify-center shrink-0">
+            {/* Ambient soft glow aura that gently breathes */}
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/25 via-amber-400/20 to-purple-500/25 rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+
+            {/* The Grand 3D Logo with Sophisticated Floating Animation */}
+            <img
+              src="/krs-logo.png"
+              alt="KRS Criadores"
+              className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 object-contain animate-sophisticated-float group-hover:scale-105 transition-transform duration-500"
+            />
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col justify-center">
             <div className="flex items-center gap-1.5">
-              <span className="font-black text-sm sm:text-base tracking-tight text-white group-hover:text-emerald-400 transition">
-                KRS CREATOR HUB
+              <span className="font-black text-sm sm:text-base md:text-lg tracking-tight text-white group-hover:text-[#00F59B] transition leading-none">
+                KRS CRIADORES
               </span>
-              <span className="hidden sm:inline-block px-1.5 py-0.2 rounded bg-emerald-500/20 border border-emerald-500/30 text-[9px] font-pixel text-emerald-400">
+              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-gradient-to-r from-amber-400/20 to-emerald-400/20 border border-amber-400/40 text-[9px] font-pixel text-amber-300 font-bold">
                 PRO
               </span>
             </div>
-            <span className="text-[10px] text-zinc-400 font-medium hidden sm:block">
-              A Plataforma Oficial de Jogos & Criadores
+            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-medium hidden xs:block mt-0.5">
+              Plataforma Oficial de Jogos & Criadores
             </span>
           </div>
         </Link>

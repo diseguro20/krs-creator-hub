@@ -31,8 +31,8 @@ const SLIDES: CarouselSlide[] = [
     ctaAction: "open_wallet",
     gradient: "from-[#082214] via-[#05110a] to-[#040906]",
     borderColor: "border-emerald-500/40 shadow-emerald-500/20",
-    bannerImg: "https://fruitcash-fun.vercel.app/imagens/asset_2.png",
-    floatingTag: "PIX IMEDIATO ⚡",
+    bannerImg: "/krs-logo.png",
+    floatingTag: "KRS OFICIAL 👑",
   },
   {
     id: "slide-fruit-cash",
@@ -215,14 +215,14 @@ export function PromotionalCarousel() {
 
             {/* Left: Icon / Character Artwork */}
             <div className="relative z-10 shrink-0 flex flex-col items-center">
-              <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-emerald-400/40 shadow-xl shadow-emerald-950/60 bg-gradient-to-b from-emerald-900/40 to-black/80 flex items-center justify-center p-1.5">
+              <div className="relative w-18 h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center p-1">
                 <img
                   src={slide.bannerImg}
-                  alt="KRS PIX"
-                  className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
+                  alt="KRS Criadores"
+                  className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] drop-shadow-[0_0_20px_rgba(0,245,155,0.4)] animate-sophisticated-float transform group-hover:scale-110 transition-transform duration-300"
                 />
               </div>
-              <span className="mt-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] sm:text-[9px] font-black text-emerald-300 shadow-md">
+              <span className="mt-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] sm:text-[9px] font-black text-emerald-300 shadow-md">
                 {slide.floatingTag}
               </span>
             </div>
