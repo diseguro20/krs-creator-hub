@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { ChevronLeft, ChevronRight, Zap, Play, Sparkles, ArrowRight } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronLeft, ChevronRight, Zap, Play, CheckCircle2 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 
 interface CarouselSlide {
   id: string;
+  type: "custom_card" | "graphic_banner";
   badge: string;
   title: string;
   highlightText: string;
@@ -15,13 +15,14 @@ interface CarouselSlide {
   ctaAction: "play_fruit_cash" | "play_krs777" | "play_blockerino" | "open_wallet";
   gradient: string;
   borderColor: string;
-  characterImg: string;
+  bannerImg: string;
   floatingTag: string;
 }
 
 const SLIDES: CarouselSlide[] = [
   {
     id: "slide-pix",
+    type: "custom_card",
     badge: "KRS CREATOR HUB • SAQUES 24/7",
     title: "RECEBA INSTANTANEAMENTE O",
     highlightText: "SEU SAQUE VIA PIX",
@@ -30,38 +31,41 @@ const SLIDES: CarouselSlide[] = [
     ctaAction: "open_wallet",
     gradient: "from-[#082214] via-[#05110a] to-[#040906]",
     borderColor: "border-emerald-500/40 shadow-emerald-500/20",
-    characterImg: "https://fruitcash-fun.vercel.app/imagens/asset_2.png",
+    bannerImg: "https://fruitcash-fun.vercel.app/imagens/asset_2.png",
     floatingTag: "PIX IMEDIATO ⚡",
   },
   {
     id: "slide-fruit-cash",
+    type: "graphic_banner",
     badge: "FRUIT CASH OFICIAL 🍓",
     title: "CORTE AS FRUTINHAS E FATIE",
     highlightText: "LUCROS NO PIX!",
-    subtitle: "O jogo de reflexo mais quente do Brasil: 100% de bônus no primeiro depósito.",
+    subtitle: "O autêntico jogo da frutinha com 100% de bônus no primeiro depósito.",
     ctaText: "JOGAR AGORA",
     ctaAction: "play_fruit_cash",
-    gradient: "from-[#1a2e12] via-[#0c1808] to-[#040803]",
+    gradient: "from-[#14280f] via-[#0a1708] to-[#040803]",
     borderColor: "border-green-400/40 shadow-green-500/20",
-    characterImg: "https://fruitcash-fun.vercel.app/imagens/og-banner.jpg",
+    bannerImg: "https://fruitcash-fun.vercel.app/imagens/og-banner.jpg",
     floatingTag: "100% BÔNUS 🎁",
   },
   {
     id: "slide-krs777",
+    type: "graphic_banner",
     badge: "CASSINO ONLINE OFICIAL 🎰",
     title: "KRS 777: FORTUNE TIGER,",
     highlightText: "MINES & SLOTS VIP",
-    subtitle: "A plataforma oficial de slots da KRS com saques rápidos e bônus a partir de R$ 20.",
+    subtitle: "Slots oficiais, roletas ao vivo e saques rápidos na plataforma KRS.",
     ctaText: "JOGUE JÁ",
     ctaAction: "play_krs777",
     gradient: "from-[#291e07] via-[#120e03] to-[#080601]",
     borderColor: "border-amber-400/40 shadow-amber-500/20",
-    characterImg: "https://krs777.online/assets/images/krs777_share_banner.jpg",
+    bannerImg: "https://krs777.online/assets/images/krs777_share_banner.jpg",
     floatingTag: "SLOTS AO VIVO 🐯",
   },
   {
     id: "slide-blockerino",
-    badge: "HABILIDADE & PUZZLE 🧩",
+    type: "graphic_banner",
+    badge: "HABILIDADE & REFLEXO 🧩",
     title: "BLOCKERINO & BUBBLE CASH",
     highlightText: "TORNEIOS NO AR!",
     subtitle: "Limpe linhas no grid 10x10, estoure bolhas e dispute o topo do ranking.",
@@ -69,31 +73,35 @@ const SLIDES: CarouselSlide[] = [
     ctaAction: "play_blockerino",
     gradient: "from-[#081a2e] via-[#040c17] to-[#02050a]",
     borderColor: "border-cyan-400/40 shadow-cyan-500/20",
-    characterImg: "https://blockerino-play.vercel.app/og.png",
+    bannerImg: "https://blockerino-play.vercel.app/og.png",
     floatingTag: "RANKING 🏆",
   },
 ];
 
 export function PromotionalCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const { games, openGamePlayer, setWalletModalOpen } = useKrsStore();
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-  const minSwipeDistance = 40;
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  const minSwipeDistance = 35;
 
   const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+    setIsPaused(true);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    touchEndX.current = e.targetTouches[0].clientX;
   };
 
   const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
+    setIsPaused(false);
+    if (!touchStartX.current || !touchEndX.current) return;
+    const distance = touchStartX.current - touchEndX.current;
     if (distance > minSwipeDistance) {
       handleNext();
     } else if (distance < -minSwipeDistance) {
@@ -109,13 +117,14 @@ export function PromotionalCarousel() {
     setCurrentSlide((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
   };
 
-  // Auto advance every 6 seconds
+  // Auto advance every 5 seconds when not paused
   useEffect(() => {
+    if (isPaused) return;
     const timer = setInterval(() => {
       handleNext();
-    }, 6000);
+    }, 5000);
     return () => clearInterval(timer);
-  }, [currentSlide]);
+  }, [currentSlide, isPaused]);
 
   const slide = SLIDES[currentSlide];
 
@@ -139,103 +148,156 @@ export function PromotionalCarousel() {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      className="relative w-full max-w-5xl mx-auto my-3 sm:my-6 select-none touch-pan-y"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      className="relative w-full max-w-7xl mx-auto my-2 sm:my-4 select-none touch-pan-y"
     >
-      {/* Main Banner Card */}
+      {/* 
+        Strict aspect ratio container matching reference screenshot:
+        Mobile: aspect-[16/7] (~140px-160px height) - NEVER GIGANTIC, NEVER CUT OFF
+        Desktop: sm:aspect-[3/1] (~190px-240px height)
+      */}
       <div
-        className={`relative overflow-hidden rounded-3xl border bg-gradient-to-r ${slide.gradient} ${slide.borderColor} shadow-2xl transition-all duration-500 min-h-[190px] sm:min-h-[230px] md:min-h-[260px] flex items-center`}
+        onClick={handleCtaClick}
+        className={`group relative cursor-pointer overflow-hidden rounded-2xl sm:rounded-3xl border-2 ${slide.borderColor} bg-[#040a06] shadow-xl shadow-black/80 transition-all duration-300 w-full aspect-[16/7] sm:aspect-[3/1] max-h-[175px] sm:max-h-[240px] md:max-h-[270px] flex items-center justify-center`}
       >
-        {/* Animated background particles & ambient grid */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />
-        <div className="absolute -left-10 -bottom-10 w-44 h-44 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -right-10 -top-10 w-44 h-44 bg-brand-primary/15 rounded-full blur-3xl pointer-events-none" />
+        {/* Render Type 1: Graphic Banner (Fruit Cash, KRS 777, Blockerino) */}
+        {slide.type === "graphic_banner" ? (
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+            {/* Ambient Blurred Backdrop to avoid any letterboxing */}
+            <div
+              className="absolute inset-0 bg-cover bg-center filter blur-lg opacity-40 scale-110"
+              style={{ backgroundImage: `url(${slide.bannerImg})` }}
+            />
 
-        {/* Floating Green Cubes / Diamonds (Visual elements from reference image) */}
-        <div className="absolute top-4 left-1/4 w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/40 rotate-12 backdrop-blur-sm hidden sm:block animate-pulse" />
-        <div className="absolute bottom-6 right-10 w-10 h-10 rounded-xl bg-emerald-500/25 border border-emerald-400/50 -rotate-12 backdrop-blur-sm hidden sm:block animate-bounce" style={{ animationDuration: "4s" }} />
-        <div className="absolute top-6 right-1/4 w-6 h-6 rounded-md bg-emerald-400/30 border border-emerald-300/60 rotate-45 backdrop-blur-sm hidden sm:block" />
+            {/* Main Widescreen Banner Image fitted properly without cutting off */}
+            <img
+              src={slide.bannerImg}
+              alt={slide.title}
+              className="relative z-10 w-full h-full object-cover object-center sm:object-contain transition-transform duration-500 group-hover:scale-102"
+              loading="eager"
+            />
 
-        {/* Content Container */}
-        <div className="relative z-10 w-full px-3 sm:px-8 md:px-12 py-3.5 sm:py-6 flex items-center justify-between gap-2.5 sm:gap-6">
-          
-          {/* Left Side: Character / Game Badge & Tag */}
-          <div className="relative shrink-0 flex flex-col items-center">
-            <div className="relative w-18 h-18 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-2 border-emerald-400/40 shadow-xl shadow-emerald-950/60 bg-gradient-to-b from-emerald-900/40 to-black/80">
-              <img
-                src={slide.characterImg}
-                alt="Jogo Oficial"
-                className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-transparent opacity-50" />
-            </div>
+            {/* Gradient Overlay & Tag */}
+            <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/80 via-transparent to-black/30 pointer-events-none" />
 
-            {/* Floating Tag */}
-            <span className="mt-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[9px] sm:text-[10px] font-black tracking-wider text-emerald-300 shadow-md whitespace-nowrap">
-              {slide.floatingTag}
-            </span>
-          </div>
-
-          {/* Center / Right Content */}
-          <div className="flex-1 flex flex-col items-center text-center px-1 sm:px-4">
-            {/* Mini Brand Badge */}
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-black/70 border border-emerald-500/30 text-[9px] sm:text-xs font-bold text-emerald-400 mb-1.5 uppercase tracking-wider backdrop-blur-md">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              {slide.badge}
-            </div>
-
-            {/* Big Headline (exact wording from user screenshot) */}
-            <h2 className="text-xs sm:text-lg md:text-2xl font-black text-white tracking-tight leading-snug sm:leading-tight">
-              {slide.title}{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-[#00F59B] to-green-300 font-extrabold block sm:inline">
-                {slide.highlightText}
+            {/* Top Badge */}
+            <div className="absolute top-2 left-2 sm:top-3 sm:left-4 z-30 flex items-center gap-1.5 pointer-events-none">
+              <span className="px-2 py-0.5 rounded-full bg-black/80 border border-emerald-500/40 text-[9px] sm:text-xs font-pixel text-emerald-400 backdrop-blur-md shadow-md">
+                {slide.badge}
               </span>
-            </h2>
+            </div>
 
-            <p className="text-[11px] sm:text-xs md:text-sm text-zinc-300 max-w-md mt-1 hidden sm:block">
-              {slide.subtitle}
-            </p>
-
-            {/* Glowing CTA Pill Button: "JOGUE JÁ" */}
-            <button
-              onClick={handleCtaClick}
-              className="mt-2 sm:mt-3.5 group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 sm:px-7 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[10px] sm:text-xs md:text-sm tracking-wider uppercase shadow-lg shadow-emerald-500/50 hover:shadow-emerald-400/70 hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
-            >
-              <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-dark-950 text-dark-950" />
-              <span>{slide.ctaText}</span>
-              <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">→</span>
-            </button>
+            {/* Floating Floating Action Pill (Bottom Right) */}
+            <div className="absolute bottom-2.5 right-2 sm:bottom-3 sm:right-4 z-30 flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCtaClick();
+                }}
+                className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-5 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/50 transition transform group-hover:scale-105 active:scale-95"
+              >
+                <Play className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-dark-950" />
+                <span>{slide.ctaText}</span>
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Render Type 2: Custom Subway Fortuna / PIX Card (Exact replica from reference) */
+          <div className="relative w-full h-full flex items-center justify-between px-3 sm:px-8 md:px-12 py-2 overflow-hidden bg-gradient-to-r from-[#082214] via-[#05110a] to-[#040906]">
+            {/* Ambient Background Glow */}
+            <div className="absolute -left-10 -bottom-10 w-36 h-36 bg-emerald-500/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -right-10 -top-10 w-36 h-36 bg-brand-primary/15 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Floating Neo Cubes */}
+            <div className="absolute top-3 left-1/4 w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-400/40 rotate-12 backdrop-blur-sm hidden sm:block animate-pulse" />
+            <div className="absolute bottom-4 right-1/4 w-7 h-7 rounded-lg bg-emerald-500/25 border border-emerald-400/50 -rotate-12 backdrop-blur-sm hidden sm:block animate-bounce" style={{ animationDuration: "4s" }} />
+
+            {/* Left: Icon / Character Artwork */}
+            <div className="relative z-10 shrink-0 flex flex-col items-center">
+              <div className="relative w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-emerald-400/40 shadow-xl shadow-emerald-950/60 bg-gradient-to-b from-emerald-900/40 to-black/80 flex items-center justify-center p-1.5">
+                <img
+                  src={slide.bannerImg}
+                  alt="KRS PIX"
+                  className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <span className="mt-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] sm:text-[9px] font-black text-emerald-300 shadow-md">
+                {slide.floatingTag}
+              </span>
+            </div>
+
+            {/* Center / Right Content */}
+            <div className="relative z-10 flex-1 flex flex-col items-center text-center px-2 sm:px-6">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 border border-emerald-500/30 text-[8px] sm:text-[10px] font-bold text-emerald-400 mb-1 uppercase tracking-wider backdrop-blur-md">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                {slide.badge}
+              </div>
+
+              <h2 className="text-xs sm:text-lg md:text-xl font-black text-white tracking-tight leading-tight uppercase font-sans">
+                {slide.title}{" "}
+                <span className="text-[#00F59B] block sm:inline font-extrabold">
+                  {slide.highlightText}
+                </span>
+              </h2>
+
+              <p className="text-[10px] sm:text-xs text-zinc-300 max-w-sm mt-0.5 hidden sm:block line-clamp-1">
+                {slide.subtitle}
+              </p>
+
+              {/* JOGUE JÁ Pill Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCtaClick();
+                }}
+                className="mt-1.5 sm:mt-2.5 flex items-center gap-1 px-4 sm:px-6 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-lg shadow-emerald-500/40 transition hover:scale-105 active:scale-95"
+              >
+                <Zap className="w-3 h-3 fill-dark-950" />
+                <span>{slide.ctaText}</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Carousel Nav Arrow: Left */}
         <button
-          onClick={handlePrev}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrev();
+          }}
           aria-label="Slide anterior"
-          className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/60 hover:bg-emerald-500/30 border border-white/10 hover:border-emerald-400/50 text-white transition-all backdrop-blur-md cursor-pointer"
+          className="absolute left-1.5 sm:left-3 top-1/2 -translate-y-1/2 z-30 p-1 sm:p-1.5 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 text-white hover:text-emerald-400 transition-all backdrop-blur-md cursor-pointer shadow-lg"
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Carousel Nav Arrow: Right */}
         <button
-          onClick={handleNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
           aria-label="Próximo slide"
-          className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 p-1.5 sm:p-2 rounded-full bg-black/60 hover:bg-emerald-500/30 border border-white/10 hover:border-emerald-400/50 text-white transition-all backdrop-blur-md cursor-pointer"
+          className="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 z-30 p-1 sm:p-1.5 rounded-full bg-black/70 hover:bg-black/90 border border-white/20 text-white hover:text-emerald-400 transition-all backdrop-blur-md cursor-pointer shadow-lg"
         >
           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
-        {/* Pagination Indicators (active pill + dots) */}
-        <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+        {/* Pagination Indicators (Active Green Pill + Dots) */}
+        <div className="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 pointer-events-auto">
           {SLIDES.map((_, idx) => (
             <button
               key={idx}
-              onClick={() => setCurrentSlide(idx)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentSlide(idx);
+              }}
               aria-label={`Ir para slide ${idx + 1}`}
-              className={`transition-all duration-300 rounded-full ${
+              className={`transition-all duration-300 rounded-full cursor-pointer ${
                 currentSlide === idx
-                  ? "w-6 h-2 bg-emerald-400 shadow-md shadow-emerald-500/60"
-                  : "w-2 h-2 bg-white/30 hover:bg-white/60"
+                  ? "w-5 sm:w-6 h-1.5 sm:h-2 bg-[#00F59B] shadow-md shadow-emerald-500/80"
+                  : "w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white/40 hover:bg-white/80"
               }`}
             />
           ))}

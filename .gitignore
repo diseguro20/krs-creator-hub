@@ -29,6 +29,7 @@ yarn-error.log*
 
 # vercel
 .vercel
+mobile-app-ui-design-main/
 
 # typescript
 *.tsbuildinfo

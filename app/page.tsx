@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { ArcadeHeaderBar } from "@/components/gaming/ArcadeHeaderBar";
+import { PromotionalCarousel } from "@/components/gaming/PromotionalCarousel";
 import { ArcadeGameCard } from "@/components/gaming/ArcadeGameCard";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { formatCurrency } from "@/lib/utils";
@@ -29,9 +30,16 @@ export default function LandingPage() {
       {/* 1. TOP ARCADE HEADER BAR */}
       <ArcadeHeaderBar />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-10 sm:space-y-14">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-3 sm:py-6 space-y-8 sm:space-y-12">
         {/* ========================================================================= */}
-        {/* 1. JOGOS OFICIAIS (DIRETO NO TOPO - SEM FIRULA)                           */}
+        {/* 1. CARROSSEL PROMOCIONAL HORIZONTAL (PROPORCIONAL E COMPACTO NO MOBILE)   */}
+        {/* ========================================================================= */}
+        <section className="relative">
+          <PromotionalCarousel />
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 2. JOGOS OFICIAIS                                                         */}
         {/* ========================================================================= */}
         <section id="jogos" className="space-y-5">
           {/* Header Bar */}

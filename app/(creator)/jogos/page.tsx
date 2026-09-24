@@ -19,6 +19,7 @@ import {
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { GameCategory } from "@/types";
 import { ArcadeGameCard } from "@/components/gaming/ArcadeGameCard";
+import { PromotionalCarousel } from "@/components/gaming/PromotionalCarousel";
 
 const CATEGORIES: ("Todos" | GameCategory)[] = [
   "Todos",
@@ -84,6 +85,11 @@ export default function GamesCatalogPage() {
         </div>
       </div>
 
+
+      {/* ========================================================================= */}
+      {/* 1. CARROSSEL PROMOCIONAL HORIZONTAL (COMPACTO NO MOBILE)                  */}
+      {/* ========================================================================= */}
+      <PromotionalCarousel />
 
       {/* ========================================================================= */}
       {/* 2. ARCADE CATEGORY TITLE & SEARCH: "🎮 JOGOS"                             */}
