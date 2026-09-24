@@ -18,6 +18,7 @@ import {
   History,
   Settings,
   ArrowLeft,
+  Webhook,
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 
@@ -26,6 +27,7 @@ const ADMIN_LINKS = [
   { label: "Fila de Submissions", href: "/admin/submissions", icon: Inbox, badgeKey: "pendingSubs" },
   { label: "Creators & Influencers", href: "/admin/creators", icon: Users },
   { label: "Gestão de Jogos", href: "/admin/games", icon: Gamepad2 },
+  { label: "APIs & Webhooks dos Jogos", href: "/admin/integracoes", icon: Webhook },
   { label: "Campaign Builder", href: "/admin/campaigns", icon: Layers },
   { label: "Central de Materiais", href: "/admin/materials", icon: FolderDown },
   { label: "Creator Pass Seasons", href: "/admin/creator-pass", icon: Trophy },
