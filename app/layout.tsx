@@ -14,9 +14,52 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "KRS CREATOR HUB - Gestão & Gamificação de Influencers e Captadores",
-  description: "A plataforma definitiva para influenciadores, creators e captadores de jogos por habilidade. Campanhas sequenciais, Creator Pass, missões e aprovação profissional.",
-  keywords: ["creator hub", "influencers", "jogos de habilidade", "campanhas de jogos", "krs", "creator pass"],
+  metadataBase: new URL("https://krs-creator-hub.vercel.app"),
+  title: "KRS CREATOR HUB - A Plataforma Oficial de Jogos & Criadores",
+  description: "Monetize sua audiência com os 4 jogos oficiais da KRS. Comissões em tempo real, saques instantâneos via PIX, campanhas exclusivas e Creator Pass.",
+  keywords: [
+    "creator hub",
+    "krs creator hub",
+    "influencers",
+    "jogos de habilidade",
+    "fruit cash",
+    "blockerino",
+    "bubble cash",
+    "krs 777",
+    "saques pix",
+    "afiliados",
+    "comissoes pix"
+  ],
+  authors: [{ name: "KRS Creator Hub" }],
+  creator: "KRS Creator Hub",
+  publisher: "KRS Creator Hub",
+  openGraph: {
+    title: "KRS CREATOR HUB - A Plataforma Oficial de Jogos & Criadores",
+    description: "Monetize sua audiência com os 4 jogos oficiais da KRS. Comissões em tempo real, saques instantâneos via PIX, campanhas exclusivas e Creator Pass.",
+    url: "https://krs-creator-hub.vercel.app",
+    siteName: "KRS CREATOR HUB",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "KRS CREATOR HUB - Plataforma Oficial de Jogos & Criadores",
+      },
+    ],
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KRS CREATOR HUB - A Plataforma Oficial de Jogos & Criadores",
+    description: "Monetize sua audiência com os 4 jogos oficiais da KRS. Comissões em tempo real e saques instantâneos via PIX.",
+    images: ["/og-image.jpg"],
+    creator: "@krscreatorhub",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/og-image.jpg",
+  },
 };
 
 export default function RootLayout({
