@@ -86,11 +86,11 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             {/* Balance Display: "Meu saldo 💰: R$ 380,00" */}
             <div
               onClick={() => setWalletModalOpen(true)}
-              className="hidden sm:flex items-center gap-1 text-xs font-bold cursor-pointer hover:opacity-80 transition select-none"
+              className="flex items-center gap-1 text-[11px] sm:text-xs font-bold cursor-pointer hover:opacity-80 transition select-none bg-black/50 px-2 sm:px-2.5 py-1 rounded-xl border border-white/5 sm:border-transparent"
               title="Clique para ver extrato ou sacar"
             >
-              <span className="text-zinc-300">Meu saldo 💰:</span>
-              <span className="text-white font-extrabold text-sm ml-0.5">
+              <span className="text-zinc-400 hidden xs:inline">Saldo:</span>
+              <span className="text-[#00F59B] font-extrabold text-xs sm:text-sm font-mono tabular-nums">
                 R$ {walletBalance.toFixed(2).replace(".", ",")}
               </span>
             </div>

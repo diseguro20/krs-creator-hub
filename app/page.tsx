@@ -13,6 +13,7 @@ import {
 import { ArcadeHeaderBar } from "@/components/gaming/ArcadeHeaderBar";
 import { PromotionalCarousel } from "@/components/gaming/PromotionalCarousel";
 import { ArcadeGameCard } from "@/components/gaming/ArcadeGameCard";
+import { CreatorMobileNav } from "@/components/navigation/CreatorMobileNav";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { formatCurrency } from "@/lib/utils";
 import { SIMULATED_AFFILIATE_INFLUENCERS } from "@/lib/affiliate-leaderboard-data";
@@ -356,6 +357,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* 5. NAVEGAÇÃO MOBILE INFERIOR (THUMB ZONE) */}
+      <CreatorMobileNav />
     </div>
   );
 }
