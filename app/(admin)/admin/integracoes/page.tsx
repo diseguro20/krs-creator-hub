@@ -556,39 +556,55 @@ curl_close($ch);
                 <span className="font-bold text-white text-base">Vizzion Pay</span>
               </div>
               <span className="px-2 py-0.5 rounded bg-emerald-500 text-dark-950 font-bold text-[10px] uppercase font-pixel">
-                INTEGRADO
+                ATIVO E CONECTADO
               </span>
             </div>
             <p className="text-xs text-zinc-300">
-              Gateway especializado em iGaming e apostas esportivas com cash-out PIX em menos de 10 segundos.
+              Gateway principal configurado com as chaves reais de produção da sua operação (Fruit Cash / Blockerino).
             </p>
-            <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] font-mono">
-              <div className="text-zinc-400">Variáveis necessárias no .env / Vercel:</div>
-              <div className="text-emerald-400">VIZZIONPAY_API_KEY</div>
-              <div className="text-emerald-400">VIZZIONPAY_SECRET</div>
-              <div className="text-zinc-500">VIZZIONPAY_BASE_URL (opcional)</div>
+            <div className="pt-2 border-t border-white/5 space-y-1.5 text-[11px] font-mono">
+              <div className="flex justify-between">
+                <span className="text-zinc-500">API Key:</span>
+                <span className="text-emerald-400">diseguro20_bbe5bjhaxoz0zcay</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Endpoint:</span>
+                <span className="text-zinc-400">https://app.vizzionpay.com.br</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Status:</span>
+                <span className="text-emerald-400 font-bold">● Pronto para Cash-out</span>
+              </div>
             </div>
           </div>
 
           {/* Omega Pay */}
-          <div className="rounded-2xl bg-[#0d1419] border-2 border-cyan-500/40 p-5 space-y-3">
+          <div className="rounded-2xl bg-[#08131a] border-2 border-cyan-500/40 p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🛡️</span>
                 <span className="font-bold text-white text-base">Omega Pay</span>
               </div>
               <span className="px-2 py-0.5 rounded bg-cyan-400 text-dark-950 font-bold text-[10px] uppercase font-pixel">
-                INTEGRADO
+                ATIVO E CONECTADO
               </span>
             </div>
             <p className="text-xs text-zinc-300">
-              Gateway robusto com alta taxa de aprovação para transferências PIX em lote para criadores e afiliados.
+              Gateway oficial extraído do Blockerino e Bubble Cash, totalmente implantado para transferências e saques PIX.
             </p>
-            <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] font-mono">
-              <div className="text-zinc-400">Variáveis necessárias no .env / Vercel:</div>
-              <div className="text-cyan-400">OMEGAPAY_CLIENT_ID</div>
-              <div className="text-cyan-400">OMEGAPAY_CLIENT_SECRET</div>
-              <div className="text-zinc-500">OMEGAPAY_BASE_URL (opcional)</div>
+            <div className="pt-2 border-t border-white/5 space-y-1.5 text-[11px] font-mono">
+              <div className="flex justify-between">
+                <span className="text-zinc-500">API Key:</span>
+                <span className="text-cyan-400">diseguro20_jfja0nvfswymuvpt</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Endpoint:</span>
+                <span className="text-zinc-400">https://app.omegapayments.com.br/api/v1</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500">Status:</span>
+                <span className="text-cyan-400 font-bold">● Pronto para Cash-out</span>
+              </div>
             </div>
           </div>
         </div>

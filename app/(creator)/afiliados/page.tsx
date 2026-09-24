@@ -50,18 +50,19 @@ export default function AffiliateHubPage() {
   );
   const [tagSuccess, setTagSuccess] = useState(false);
 
-  // Withdrawal Drawer/Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawGameId, setWithdrawGameId] = useState<string>("all");
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
   const [pixKeyType, setPixKeyType] = useState<string>("cpf");
   const [pixKey, setPixKey] = useState<string>("");
+  const [selectedGateway, setSelectedGateway] = useState<"auto" | "omegapay" | "vizzionpay">("auto");
   const [isProcessing, setIsProcessing] = useState(false);
   const [receipt, setReceipt] = useState<{
     txId: string;
     amount: number;
     pixKey: string;
     gameName: string;
+    provider?: string;
     timestamp: string;
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -123,29 +124,46 @@ export default function AffiliateHubPage() {
     setIsProcessing(true);
 
     try {
-      // Simulate real-time network PIX handshake
-      await new Promise((resolve) => setTimeout(resolve, 1400));
+      // Disparo real para a API de saque PIX (suporta Vizzion Pay e Omega Pay com failover)
+      const apiRes = await fetch("/api/withdrawals/pix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: amountNum,
+          pix_key: pixKey,
+          pix_key_type: pixKeyType,
+          affiliate_code: customTag || "afiliado",
+          game_id: withdrawGameId,
+          provider: selectedGateway,
+        }),
+      });
 
+      const apiData = await apiRes.json();
+
+      if (!apiRes.ok || !apiData.success) {
+        setErrorMessage(apiData.message || "O gateway PIX recusou o saque. Verifique seus dados.");
+        setIsProcessing(false);
+        return;
+      }
+
+      // Atualiza saldo na store local
       const res = await withdrawAffiliate(amountNum, pixKey, pixKeyType, withdrawGameId);
 
-      if (res.success) {
-        const gameObj = affiliateStats.find((g) => g.game_id === withdrawGameId);
-        setReceipt({
-          txId: res.txId,
-          amount: amountNum,
-          pixKey,
-          gameName: gameObj ? gameObj.game_name : "Saldo Consolidado (Todos os Jogos)",
-          timestamp: new Date().toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
-        });
-      } else {
-        setErrorMessage(res.message);
-      }
-    } catch (err) {
-      setErrorMessage("Ocorreu um erro ao processar o saque PIX. Tente novamente.");
+      const gameObj = affiliateStats.find((g) => g.game_id === withdrawGameId);
+      setReceipt({
+        txId: apiData.data?.txId || res.txId,
+        amount: amountNum,
+        pixKey,
+        gameName: gameObj ? gameObj.game_name : "Saldo Consolidado (Todos os Jogos)",
+        provider: apiData.data?.provider || (selectedGateway === "omegapay" ? "Omega Pay" : "Vizzion Pay"),
+        timestamp: new Date().toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      });
+    } catch (err: any) {
+      setErrorMessage(err.message || "Ocorreu um erro ao processar o saque PIX. Tente novamente.");
     } finally {
       setIsProcessing(false);
     }
@@ -780,6 +798,10 @@ export default function AffiliateHubPage() {
                     <span className="text-white">{receipt.gameName}</span>
                   </div>
                   <div className="flex justify-between border-b border-white/5 pb-2">
+                    <span className="text-zinc-500">Gateway de Pagamento:</span>
+                    <span className="text-cyan-400 font-bold">{receipt.provider || "Omega Pay"}</span>
+                  </div>
+                  <div className="flex justify-between border-b border-white/5 pb-2">
                     <span className="text-zinc-500">Chave PIX ({pixKeyType.toUpperCase()}):</span>
                     <span className="text-white">{receipt.pixKey}</span>
                   </div>
@@ -821,6 +843,29 @@ export default function AffiliateHubPage() {
                     {errorMessage}
                   </div>
                 )}
+
+                {/* Gateway Selector */}
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-1.5 flex items-center justify-between">
+                    <span>Gateway PIX de Processamento</span>
+                    <span className="text-[10px] text-emerald-400 font-mono">VIZZION & OMEGA</span>
+                  </label>
+                  <select
+                    value={selectedGateway}
+                    onChange={(e: any) => setSelectedGateway(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-dark-900 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-400 cursor-pointer"
+                  >
+                    <option value="auto">
+                      ⚡ Automático (Failover Inteligente Vizzion Pay ⇆ Omega Pay)
+                    </option>
+                    <option value="omegapay">
+                      🛡️ Omega Pay (Blockerino & Bubble Cash - diseguro20_jfja0nvf...)
+                    </option>
+                    <option value="vizzionpay">
+                      ⚡ Vizzion Pay (Fruit Cash & KRS 777 - diseguro20_bbe5bjha...)
+                    </option>
+                  </select>
+                </div>
 
                 {/* Game Origin Selector */}
                 <div>

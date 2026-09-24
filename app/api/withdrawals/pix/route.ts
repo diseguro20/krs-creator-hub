@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       pix_key_type = "cpf", // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
       affiliate_code = "afiliado",
       game_id = "all", // 'all' for consolidated balance or specific game
-      provider, // 'vizzionpay' | 'omegapay'
+      provider, // 'vizzionpay' | 'omegapay' | 'auto'
     } = body;
 
     const numAmount = parseFloat(amount);
@@ -37,29 +37,65 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Determine active provider: explicit param > env var > default
-    const activeProvider =
-      provider ||
-      process.env.PIX_GATEWAY_PROVIDER ||
-      (process.env.VIZZIONPAY_API_KEY ? "vizzionpay" : process.env.OMEGAPAY_CLIENT_ID ? "omegapay" : "vizzionpay");
+    // Provedor selecionado ou configurado
+    const configuredProvider = provider || process.env.PIX_GATEWAY_PROVIDER || "auto";
 
     let result;
 
-    if (activeProvider === "omegapay") {
+    if (configuredProvider === "omegapay") {
       result = await sendOmegaPixCashout({
         amount: numAmount,
         pixKey: pix_key,
         pixKeyType: pix_key_type,
         affiliateCode: affiliate_code,
       });
-    } else {
-      // Default to Vizzion Pay
+    } else if (configuredProvider === "vizzionpay") {
       result = await sendVizzionPixCashout({
         amount: numAmount,
         pixKey: pix_key,
         pixKeyType: pix_key_type,
         affiliateCode: affiliate_code,
       });
+    } else {
+      // Modo "auto": se o saque tiver origem prioritária de blockerino/bubblecash,
+      // tenta Omega Pay primeiro; senão Vizzion Pay com failover automático.
+      const isOmegaGame = game_id === "blockerino" || game_id === "bubblecash" || game_id === "bubbles-cash";
+
+      if (isOmegaGame) {
+        result = await sendOmegaPixCashout({
+          amount: numAmount,
+          pixKey: pix_key,
+          pixKeyType: pix_key_type,
+          affiliateCode: affiliate_code,
+        });
+
+        // Failover para Vizzion se Omega falhar
+        if (!result.success) {
+          result = await sendVizzionPixCashout({
+            amount: numAmount,
+            pixKey: pix_key,
+            pixKeyType: pix_key_type,
+            affiliateCode: affiliate_code,
+          });
+        }
+      } else {
+        result = await sendVizzionPixCashout({
+          amount: numAmount,
+          pixKey: pix_key,
+          pixKeyType: pix_key_type,
+          affiliateCode: affiliate_code,
+        });
+
+        // Failover para Omega se Vizzion falhar
+        if (!result.success) {
+          result = await sendOmegaPixCashout({
+            amount: numAmount,
+            pixKey: pix_key,
+            pixKeyType: pix_key_type,
+            affiliateCode: affiliate_code,
+          });
+        }
+      }
     }
 
     if (!result.success) {
@@ -67,7 +103,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           error: "PIX_GATEWAY_ERROR",
-          message: (result as any).error || "O gateway PIX recusou a transação. Verifique sua chave PIX.",
+          message: (result as any).error || "Os gateways PIX (Vizzion Pay / Omega Pay) recusaram a transação. Verifique sua chave PIX.",
         },
         { status: 422 }
       );
