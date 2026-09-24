@@ -192,6 +192,81 @@ button, a, input, select, textarea {
   text-transform: uppercase;
 }
 
+/* Fluid Keyframe Animations for Mobile App UI */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes shimmerSlide {
+  0% {
+    transform: translateX(-120%);
+  }
+  50%, 100% {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes glowBreathe {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 245, 155, 0.25), inset 0 0 10px rgba(0, 245, 155, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 245, 155, 0.55), inset 0 0 18px rgba(0, 245, 155, 0.2);
+  }
+}
+
+@keyframes championBorderGlow {
+  0%, 100% {
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+  50% {
+    border-color: rgba(251, 191, 36, 1);
+    box-shadow: 0 0 35px rgba(251, 191, 36, 0.45);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-shimmer-sweep {
+  animation: shimmerSlide 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-float-gentle {
+  animation: floatGentle 3s ease-in-out infinite;
+}
+
+.animate-glow-breathe {
+  animation: glowBreathe 3s ease-in-out infinite;
+}
+
+.animate-champion-glow {
+  animation: championBorderGlow 2.5s ease-in-out infinite;
+}
+
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,
