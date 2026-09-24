@@ -361,6 +361,14 @@ export default function CampaignJourneyPage({
               </div>
             )}
 
+            {/* Direct Notice: Videos not needed, only prints */}
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-zinc-300 leading-relaxed">
+                <strong className="text-emerald-400">Não precisa enviar vídeo!</strong> Só mandar os prints da tela dos stories, postagens com link ou métricas de engajamento que nossa equipe já valida e libera seu XP na hora.
+              </div>
+            </div>
+
             {/* Uploader Form */}
             <form onSubmit={handleUploadSubmit} className="space-y-4">
               {/* Drag and Drop Zone */}
@@ -368,16 +376,16 @@ export default function CampaignJourneyPage({
                 <input
                   type="file"
                   onChange={handleFileChange}
-                  accept="video/*,image/*,audio/*,.pdf"
+                  accept="image/*,.pdf"
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
 
-                <UploadCloud className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
+                <UploadCloud className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
                 <div className="text-xs font-bold text-white">
-                  {file ? file.name : "Arrasta seu vídeo ou print pra cá, ou clica pra escolher"}
+                  {file ? file.name : "Arrasta seu print pra cá, ou clica pra escolher"}
                 </div>
-                <div className="text-[11px] text-zinc-500 mt-1">
-                  MP4, MOV, PNG, JPG (vídeos, prints ou comprovantes até 100MB)
+                <div className="text-[11px] text-zinc-400 mt-1">
+                  PNG, JPG, WEBP ou PDF (Prints dos stories, links no ar ou métricas de alcance)
                 </div>
 
                 {file && (
@@ -398,7 +406,7 @@ export default function CampaignJourneyPage({
               {isUploading && (
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px] text-zinc-400">
-                    <span>Subindo arquivo com segurança...</span>
+                    <span>Subindo print com segurança...</span>
                     <span>{uploadProgress}%</span>
                   </div>
                   <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
@@ -410,13 +418,13 @@ export default function CampaignJourneyPage({
               {/* Content Link (Instagram, TikTok, YouTube) */}
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                  Link da Publicação (se já publicou)
+                  Link da Publicação / Stories (opcional)
                 </label>
                 <input
                   type="url"
                   value={contentLink}
                   onChange={(e) => setContentLink(e.target.value)}
-                  placeholder="https://instagram.com/p/... ou https://tiktok.com/@..."
+                  placeholder="https://instagram.com/stories/... ou https://tiktok.com/@..."
                   className="w-full px-3 py-2 rounded-xl bg-dark-850 border border-white/10 text-xs text-white focus:outline-none focus:border-brand-primary"
                 />
               </div>
@@ -424,13 +432,13 @@ export default function CampaignJourneyPage({
               {/* Notes / Proof commentary */}
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 mb-1">
-                  Comentários ou Observações
+                  Comentários ou Observações (opcional)
                 </label>
                 <textarea
                   rows={3}
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
-                  placeholder="Conta pra gente como foi a resposta da galera, primeiras métricas ou detalhes do vídeo..."
+                  placeholder="Conta pra gente detalhes da postagem, primeiras métricas ou observações do print enviado..."
                   className="w-full px-3 py-2 rounded-xl bg-dark-850 border border-white/10 text-xs text-white focus:outline-none focus:border-brand-primary resize-none"
                 />
               </div>

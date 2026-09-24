@@ -274,7 +274,7 @@ export default function CreatorDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-dark-900 border border-white/5 space-y-1">
           <div className="flex items-center justify-between text-zinc-400">
-            <span className="text-xs font-medium">Vídeos em Análise</span>
+            <span className="text-xs font-medium">Prints em Análise</span>
             <Clock className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-black text-white">{pendingSubmissions}</div>

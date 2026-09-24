@@ -15,6 +15,7 @@ import {
   X,
   Check,
   Filter,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { Submission, SubmissionStatus } from "@/types";
@@ -165,12 +166,12 @@ export default function AdminSubmissionsPage() {
                   {sub.file_url ? (
                     <div className="rounded-2xl bg-dark-950 border border-white/10 overflow-hidden p-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <FileVideo className="w-6 h-6 text-brand-primary shrink-0" />
+                        <ImageIcon className="w-6 h-6 text-brand-primary shrink-0" />
                         <div>
                           <div className="text-xs font-bold text-white truncate max-w-xs">
-                            Arquivo de Vídeo Gameplay
+                            Print / Comprovante de Publicação
                           </div>
-                          <div className="text-[10px] text-zinc-400">14.5 MB • MP4 1080p</div>
+                          <div className="text-[10px] text-zinc-400">Captura de tela enviada para validação</div>
                         </div>
                       </div>
 

@@ -45,11 +45,11 @@ export default function AdminCampaignsPage() {
     },
     {
       step_order: 2,
-      title: "Gravar Gameplay em Alta Resolução",
-      description: "Grave partida de 15 segundos demonstrando habilidades.",
-      requirements: ["Vídeo vertical 1080p"],
+      title: "Print do Jogo ou Story Publicado",
+      description: "Envie print comprovando o story ou partida jogada (vídeo não obrigatório).",
+      requirements: ["Print da publicação ou tela do jogo"],
       xp_reward: 150,
-      upload_type: "video",
+      upload_type: "image",
       deadline_days: 3,
     },
     {
@@ -72,7 +72,7 @@ export default function AdminCampaignsPage() {
         description: "Descreva a ação requerida do creator nesta etapa.",
         requirements: ["Requisito da missão"],
         xp_reward: 100,
-        upload_type: "video",
+        upload_type: "image",
         deadline_days: 3,
       },
     ]);
