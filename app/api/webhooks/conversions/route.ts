@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { recordServerConversion } from "@/lib/server-store";
+import { recordServerConversion, resolveLeadGateway } from "@/lib/server-store";
 import { saveCreatorToFirebase } from "@/lib/firebase";
 
 // Standard secret key (can also be loaded from process.env.KRS_WEBHOOK_SECRET)
@@ -34,7 +34,10 @@ export async function POST(req: NextRequest) {
       commission_amount,
       player_name = "Jogador Anônimo",
       player_id,
+      player_email,
       transaction_id,
+      gateway,
+      payment_gateway,
     } = body;
 
     if (!affiliate_code) {
@@ -47,6 +50,15 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Identifica com rigor o gateway do lead (Vizzion Pay vs Omega Pay)
+    const assignedGateway = resolveLeadGateway({
+      game_slug,
+      player_id,
+      player_email: player_email || body.email,
+      player_name,
+      explicit_gateway: gateway || payment_gateway,
+    });
 
     // Calculate default commission if not explicitly sent
     let finalCommission = commission_amount;
@@ -69,15 +81,21 @@ export async function POST(req: NextRequest) {
       event_type,
       player_name,
       player_id: player_id || `usr_${Date.now().toString().slice(-5)}`,
+      player_email: player_email || body.email,
       amount_deposited: Number(amount_deposited),
       commission_amount: Number(finalCommission.toFixed(2)),
       transaction_id: transaction_id || `tx_${Math.random().toString(36).substring(2, 9)}`,
+      payment_gateway: assignedGateway,
       status: "available_for_pix_withdrawal",
       received_at: new Date().toISOString(),
     };
 
     // Save to persistent server store
     const updatedBalance = recordServerConversion(conversionRecord);
+
+    console.log(
+      `[AUDITORIA CONVERSÃO] Afiliado: ${conversionRecord.affiliate_code} | Jogo: ${conversionRecord.game_slug} | Lead: ${conversionRecord.player_id} | Gateway Vinculado: ${assignedGateway}`
+    );
 
     // Sync to cloud Firebase if configured
     try {
@@ -99,29 +117,14 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (err: any) {
     return NextResponse.json(
       {
         success: false,
         error: "INTERNAL_ERROR",
-        message: error?.message || "Erro interno ao processar webhook de conversão.",
+        message: err.message || "Erro interno ao processar webhook.",
       },
       { status: 500 }
     );
   }
-}
-
-export async function GET(req: NextRequest) {
-  return NextResponse.json({
-    status: "active",
-    endpoint: "KRS Creator Hub - Central Webhook de Conversões",
-    version: "1.0.0",
-    supported_games: [
-      { name: "Fruit Cash", slug: "fruit-cash", url: "https://fruitcash-fun.vercel.app/" },
-      { name: "KRS 777 (Casino Online)", slug: "krs-777", url: "https://krs777.online/" },
-      { name: "Blockerino", slug: "blockerino", url: "https://blockerino-play.vercel.app/" },
-      { name: "Bubble Cash", slug: "bubbles-cash", url: "https://bubblecash-platform.vercel.app/" },
-    ],
-    usage: "Envie requisições HTTP POST para este endpoint quando um jogador cadastrar ou depositar em qualquer um dos 4 jogos.",
-  });
 }

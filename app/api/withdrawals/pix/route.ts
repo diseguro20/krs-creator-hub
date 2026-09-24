@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendVizzionPixCashout } from "@/lib/payments/vizzionpay";
 import { sendOmegaPixCashout } from "@/lib/payments/omegapay";
+import {
+  determineAffiliatePayoutGateway,
+  deductServerAffiliateBalance,
+} from "@/lib/server-store";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,7 +15,7 @@ export async function POST(req: NextRequest) {
       pix_key_type = "cpf", // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
       affiliate_code = "afiliado",
       game_id = "all", // 'all' for consolidated balance or specific game
-      provider, // 'vizzionpay' | 'omegapay' | 'auto'
+      recent_leads = [],
     } = body;
 
     const numAmount = parseFloat(amount);
@@ -37,81 +41,66 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Provedor selecionado ou configurado
-    const configuredProvider = provider || process.env.PIX_GATEWAY_PROVIDER || "auto";
+    // Regra estrita de roteamento solicitada pelo usuário:
+    // "só pode sacar no omega pay quem for afiliado vinculado por aquele meio de pagamento ali, se não somente saque na vizzion pay"
+    // No Bubble Cash: apenas o jogador 9392 recebe na Vizzion; se o afiliado for lead dele -> Vizzion Pay; senão Omega Pay.
+    // Fruit Cash & KRS 777: 100% Vizzion Pay.
+    // Padrão geral de segurança: Vizzion Pay.
+    const resolvedGateway = determineAffiliatePayoutGateway({
+      affiliate_code,
+      game_id,
+      amount: numAmount,
+      client_leads: recent_leads,
+    });
+
+    console.log(
+      `[SAQUE PIX] Afiliado: ${affiliate_code} | Valor: R$ ${numAmount.toFixed(2)} | Origem: ${game_id} | Gateway Roteado: ${resolvedGateway.toUpperCase()}`
+    );
 
     let result;
 
-    if (configuredProvider === "omegapay") {
+    if (resolvedGateway === "omegapay") {
       result = await sendOmegaPixCashout({
         amount: numAmount,
         pixKey: pix_key,
         pixKeyType: pix_key_type,
         affiliateCode: affiliate_code,
       });
-    } else if (configuredProvider === "vizzionpay") {
+    } else {
+      // 100% Vizzion Pay
       result = await sendVizzionPixCashout({
         amount: numAmount,
         pixKey: pix_key,
         pixKeyType: pix_key_type,
         affiliateCode: affiliate_code,
       });
-    } else {
-      // Modo "auto": se o saque tiver origem prioritária de blockerino/bubblecash,
-      // tenta Omega Pay primeiro; senão Vizzion Pay com failover automático.
-      const isOmegaGame = game_id === "blockerino" || game_id === "bubblecash" || game_id === "bubbles-cash";
-
-      if (isOmegaGame) {
-        result = await sendOmegaPixCashout({
-          amount: numAmount,
-          pixKey: pix_key,
-          pixKeyType: pix_key_type,
-          affiliateCode: affiliate_code,
-        });
-
-        // Failover para Vizzion se Omega falhar
-        if (!result.success) {
-          result = await sendVizzionPixCashout({
-            amount: numAmount,
-            pixKey: pix_key,
-            pixKeyType: pix_key_type,
-            affiliateCode: affiliate_code,
-          });
-        }
-      } else {
-        result = await sendVizzionPixCashout({
-          amount: numAmount,
-          pixKey: pix_key,
-          pixKeyType: pix_key_type,
-          affiliateCode: affiliate_code,
-        });
-
-        // Failover para Omega se Vizzion falhar
-        if (!result.success) {
-          result = await sendOmegaPixCashout({
-            amount: numAmount,
-            pixKey: pix_key,
-            pixKeyType: pix_key_type,
-            affiliateCode: affiliate_code,
-          });
-        }
-      }
     }
 
     if (!result.success) {
+      console.error(
+        `[SAQUE PIX RECUSADO] Gateway ${resolvedGateway}:`,
+        (result as any).error || "Falha na liquidação bancária"
+      );
+
+      // Nunca revelar o gateway ao cliente na mensagem de erro
       return NextResponse.json(
         {
           success: false,
           error: "PIX_GATEWAY_ERROR",
-          message: (result as any).error || "Os gateways PIX (Vizzion Pay / Omega Pay) recusaram a transação. Verifique sua chave PIX.",
+          message:
+            "Não foi possível processar a transferência bancária PIX no momento. Verifique a chave informada ou contate o suporte.",
         },
         { status: 422 }
       );
     }
 
+    // Atualiza e deduz o saldo no servidor
+    deductServerAffiliateBalance(affiliate_code, numAmount, resolvedGateway);
+
+    // Resposta 100% sigilosa para o cliente (sem qualquer menção a nomes de gateways)
     return NextResponse.json({
       success: true,
-      message: `Saque unificado de R$ ${numAmount.toFixed(2)} processado com sucesso via PIX (${result.provider})!`,
+      message: `Saque de R$ ${numAmount.toFixed(2)} transferido com sucesso via PIX!`,
       data: {
         txId: result.txId,
         endToEndId: result.endToEndId,
@@ -121,8 +110,7 @@ export async function POST(req: NextRequest) {
         game_origin: game_id === "all" ? "Saldo Consolidado (Todos os 4 Jogos)" : game_id,
         affiliate_code,
         status: result.status,
-        provider: result.provider,
-        mode: result.mode,
+        method: "Transferência Instantânea PIX",
         paid_at: result.paidAt,
       },
     });
