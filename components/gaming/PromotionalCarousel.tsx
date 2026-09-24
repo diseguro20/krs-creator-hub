@@ -213,28 +213,28 @@ export function PromotionalCarousel() {
             <div className="absolute top-3 left-1/4 w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-400/40 rotate-12 backdrop-blur-sm hidden sm:block animate-pulse" />
             <div className="absolute bottom-4 right-1/4 w-7 h-7 rounded-lg bg-emerald-500/25 border border-emerald-400/50 -rotate-12 backdrop-blur-sm hidden sm:block animate-bounce" style={{ animationDuration: "4s" }} />
 
-            {/* Left: Icon / Character Artwork */}
+            {/* Left: Icon / Character Artwork - Strictly Bound on Mobile */}
             <div className="relative z-10 shrink-0 flex flex-col items-center">
-              <div className="relative w-18 h-18 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center p-1">
+              <div className="relative w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center p-0.5 shrink-0">
                 <img
                   src={slide.bannerImg}
                   alt="KRS Criadores"
-                  className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] drop-shadow-[0_0_20px_rgba(0,245,155,0.4)] animate-sophisticated-float transform group-hover:scale-110 transition-transform duration-300"
+                  className="w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] drop-shadow-[0_0_15px_rgba(0,245,155,0.35)] animate-sophisticated-float shrink-0"
                 />
               </div>
-              <span className="mt-1 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[8px] sm:text-[9px] font-black text-emerald-300 shadow-md">
+              <span className="mt-0.5 px-1.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[7.5px] sm:text-[9px] font-black text-emerald-300 shadow-sm shrink-0 whitespace-nowrap">
                 {slide.floatingTag}
               </span>
             </div>
 
             {/* Center / Right Content */}
-            <div className="relative z-10 flex-1 flex flex-col items-center text-center px-2 sm:px-6">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 border border-emerald-500/30 text-[8px] sm:text-[10px] font-bold text-emerald-400 mb-1 uppercase tracking-wider backdrop-blur-md">
+            <div className="relative z-10 flex-1 min-w-0 flex flex-col items-center text-center px-1.5 sm:px-6">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 border border-emerald-500/30 text-[7.5px] sm:text-[10px] font-bold text-emerald-400 mb-0.5 uppercase tracking-wider backdrop-blur-md">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
                 {slide.badge}
               </div>
 
-              <h2 className="text-xs sm:text-lg md:text-xl font-black text-white tracking-tight leading-tight uppercase font-sans">
+              <h2 className="text-[11px] sm:text-lg md:text-xl font-black text-white tracking-tight leading-tight uppercase font-sans">
                 {slide.title}{" "}
                 <span className="text-[#00F59B] block sm:inline font-extrabold">
                   {slide.highlightText}
@@ -251,9 +251,9 @@ export function PromotionalCarousel() {
                   e.stopPropagation();
                   handleCtaClick();
                 }}
-                className="mt-1.5 sm:mt-2.5 flex items-center gap-1 px-4 sm:px-6 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-lg shadow-emerald-500/40 transition hover:scale-105 active:scale-95"
+                className="mt-1 sm:mt-2.5 flex items-center gap-1 px-3.5 sm:px-6 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[9px] sm:text-xs tracking-wider uppercase shadow-md shadow-emerald-500/30 transition hover:scale-105 active:scale-95 cursor-pointer"
               >
-                <Zap className="w-3 h-3 fill-dark-950" />
+                <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-dark-950" />
                 <span>{slide.ctaText}</span>
               </button>
             </div>

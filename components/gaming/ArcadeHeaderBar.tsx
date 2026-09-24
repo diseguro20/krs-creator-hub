@@ -34,29 +34,29 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
     <header className="sticky top-0 z-40 w-full bg-[#0a0f0c] md:bg-[#0a0f0c]/95 md:backdrop-blur-xl border-b border-emerald-500/20 px-3 sm:px-6 py-2.5 shadow-lg shadow-black/50">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left: Brand Logo styled with grand 3D gaming badge aesthetic */}
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group select-none py-0.5">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 group select-none shrink-0 py-0.5">
           <div className="relative flex items-center justify-center shrink-0">
             {/* Ambient soft glow aura that gently breathes */}
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/25 via-amber-400/20 to-purple-500/25 rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-amber-400/15 to-purple-500/20 rounded-full blur-md opacity-60 group-hover:opacity-100 transition-opacity" />
 
-            {/* The Grand 3D Logo with Sophisticated Floating Animation */}
+            {/* The Grand 3D Logo - 100% Straight and Level */}
             <img
               src="/krs-logo.png"
               alt="KRS Criadores"
-              className="relative z-10 h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 object-contain animate-sophisticated-float group-hover:scale-105 transition-transform duration-500"
+              className="relative z-10 h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 object-contain animate-sophisticated-float group-hover:scale-105 transition-transform duration-300 shrink-0"
             />
           </div>
 
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col justify-center min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="font-black text-sm sm:text-base md:text-lg tracking-tight text-white group-hover:text-[#00F59B] transition leading-none">
+              <span className="font-black text-xs sm:text-base md:text-lg tracking-tight text-white group-hover:text-[#00F59B] transition leading-none whitespace-nowrap">
                 KRS CRIADORES
               </span>
               <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md bg-gradient-to-r from-amber-400/20 to-emerald-400/20 border border-amber-400/40 text-[9px] font-pixel text-amber-300 font-bold">
                 PRO
               </span>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-medium hidden xs:block mt-0.5">
+            <span className="text-[10px] text-zinc-400 font-medium hidden md:block mt-0.5">
               Plataforma Oficial de Jogos & Criadores
             </span>
           </div>
@@ -211,18 +211,18 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <Link
               href="/login"
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-emerald-500/40 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              className="px-2 sm:px-3 py-1.5 rounded-xl border border-white/10 hover:border-emerald-500/40 text-[11px] sm:text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer whitespace-nowrap"
             >
               Entrar
             </Link>
             <Link
               href="/cadastro"
-              className="flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95 cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-[11px] sm:text-xs uppercase tracking-wider shadow-md shadow-emerald-500/25 transition active:scale-95 cursor-pointer whitespace-nowrap"
             >
-              <Zap className="w-3.5 h-3.5 fill-dark-950 hidden sm:inline" />
+              <Zap className="w-3 h-3 fill-dark-950 hidden sm:inline" />
               <span>Criar Conta</span>
             </Link>
 
@@ -230,7 +230,7 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
-              className="md:hidden p-2 rounded-xl bg-dark-900 border border-white/10 text-zinc-300 hover:text-white hover:border-emerald-500/40 transition active:scale-95 cursor-pointer"
+              className="md:hidden p-1.5 sm:p-2 rounded-xl bg-dark-900 border border-white/10 text-zinc-300 hover:text-white hover:border-emerald-500/40 transition active:scale-95 cursor-pointer shrink-0"
             >
               {mobileMenuOpen ? <X className="w-4 h-4 text-emerald-400" /> : <Menu className="w-4 h-4" />}
             </button>
