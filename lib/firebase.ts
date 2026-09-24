@@ -2,14 +2,14 @@ import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore, doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 import { getAuth, Auth } from "firebase/auth";
 
-// Firebase Configuration with env vars and safe default fallback
+// Firebase Configuration with real project credentials and env fallback
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDemoKeyForKrsCreatorHub2026",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "krs-creator-hub.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "krs-creator-hub",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "krs-creator-hub.appspot.com",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "10987654321",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:10987654321:web:abcdef123456",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBjjLjymHOrOs3Ekex5xcIJ-tmP4-YVQBg",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "bubblecash-blockerino-2026.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "bubblecash-blockerino-2026",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "bubblecash-blockerino-2026.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "796275482668",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:796275482668:web:aee7a956b1bcb456cdf189",
 };
 
 // Initialize Firebase safely for SSR/Next.js

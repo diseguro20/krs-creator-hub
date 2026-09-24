@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           error: "PIX_GATEWAY_ERROR",
-          message: result.error || "O gateway PIX recusou a transação. Verifique sua chave PIX.",
+          message: (result as any).error || "O gateway PIX recusou a transação. Verifique sua chave PIX.",
         },
         { status: 422 }
       );
