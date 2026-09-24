@@ -3,64 +3,51 @@
 import React from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
-  Sparkles,
+  Crown,
   Zap,
-  ShieldCheck,
-  Trophy,
-  Users,
-  Layers,
-  Flame,
+  ArrowRight,
   CheckCircle2,
-  ChevronRight,
-  Play,
-  TrendingUp,
-  Gamepad2,
-  HelpCircle,
-  ExternalLink,
-  Award,
-  Wallet
+  ShieldCheck,
+  ArrowUpRight,
 } from "lucide-react";
 import { ArcadeHeaderBar } from "@/components/gaming/ArcadeHeaderBar";
-import { PromotionalCarousel } from "@/components/gaming/PromotionalCarousel";
 import { ArcadeGameCard } from "@/components/gaming/ArcadeGameCard";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { formatCurrency } from "@/lib/utils";
+import { SIMULATED_AFFILIATE_INFLUENCERS } from "@/lib/affiliate-leaderboard-data";
 
 export default function LandingPage() {
-  const { games, campaigns, totalAffiliateBalance, affiliateStats, isAffiliateUser, openGamePlayer } = useKrsStore();
+  const { games, totalAffiliateBalance, affiliateStats, isAffiliateUser } = useKrsStore();
+
+  const top1 = SIMULATED_AFFILIATE_INFLUENCERS[0];
+  const top2 = SIMULATED_AFFILIATE_INFLUENCERS[1];
+  const top3 = SIMULATED_AFFILIATE_INFLUENCERS[2];
+  const otherTopCreators = SIMULATED_AFFILIATE_INFLUENCERS.slice(3, 5);
 
   return (
-    <div className="relative min-h-screen bg-[#070c09] text-white selection:bg-[#00F59B] selection:text-dark-950 font-sans">
-      {/* 1. TOP ARCADE HEADER BAR (Exact match to reference screenshot) */}
+    <div className="relative min-h-screen bg-[#070c09] text-white selection:bg-[#00F59B] selection:text-dark-950 font-sans pb-16 lg:pb-0">
+      {/* 1. TOP ARCADE HEADER BAR */}
       <ArcadeHeaderBar />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-10 sm:space-y-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-10 sm:space-y-14">
         {/* ========================================================================= */}
-        {/* 1. HERO: PROMOTIONAL CAROUSEL BANNER (Exact layout from reference)         */}
+        {/* 1. JOGOS OFICIAIS (DIRETO NO TOPO - SEM FIRULA)                           */}
         {/* ========================================================================= */}
-        <section className="relative">
-          <PromotionalCarousel />
-        </section>
-
-        {/* ========================================================================= */}
-        {/* 2. JOGOS OFICIAIS (2 colunas mobile / 4 colunas desktop)                 */}
-        {/* ========================================================================= */}
-        <section id="jogos" className="space-y-6 pt-2">
-          {/* Section Arcade Header matching user screenshot */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-white/5">
+        <section id="jogos" className="space-y-5">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-3 border-b border-white/5">
             <div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl sm:text-3xl">🎮</span>
-                <h2 className="font-pixel text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase drop-shadow-[0_0_15px_rgba(0,245,155,0.4)]">
+                <h1 className="font-pixel text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase drop-shadow-[0_0_15px_rgba(0,245,155,0.4)]">
                   JOGOS
-                </h2>
+                </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold border border-emerald-500/30">
                   {games.length} títulos
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-400 mt-2 max-w-xl">
-                Nossos jogos oficiais de habilidade, reflexo e entretenimento. Teste os jogos no player arcade integrado, copie seu link e fature com saques imediatos via PIX.
+                Jogue agora no player integrado, copie seu link de afiliado oficial e receba comissões instantâneas via PIX.
               </p>
             </div>
 
@@ -68,12 +55,12 @@ export default function LandingPage() {
               href="/afiliados"
               className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
             >
-              <span>Ver painel de comissões</span>
+              <span>Painel de Comissões & Saque PIX</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          {/* 2-Column Mobile / 4-Column Desktop Grid matching reference */}
+          {/* 2 Colunas Mobile / 4 Colunas Desktop Grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {games.map((game) => (
               <ArcadeGameCard key={game.id} game={game} />
@@ -82,7 +69,200 @@ export default function LandingPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* 3. PAINEL UNIFICADO DE AFILIADO (MULTI-JOGOS PIX)                        */}
+        {/* 2. RANKING DOS CREATORS (LEADERBOARD OFICIAL)                             */}
+        {/* ========================================================================= */}
+        <section id="ranking" className="space-y-6 pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-3 border-b border-white/5">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl sm:text-3xl">🏆</span>
+                <h2 className="font-pixel text-xl sm:text-2xl md:text-3xl text-white tracking-widest uppercase drop-shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+                  RANKING DOS CREATORS
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold border border-amber-500/30 uppercase">
+                  Top Afiliados PIX
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-zinc-400 mt-2 max-w-xl">
+                Criadores e afiliados com maiores volumes de saques confirmados via PIX em tempo real na plataforma.
+              </p>
+            </div>
+
+            <Link
+              href="/ranking"
+              className="inline-flex items-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
+            >
+              <span>Ver Ranking Completo</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Podium Top 3 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {/* 2º LUGAR */}
+            {top2 && (
+              <div className="order-2 md:order-1 rounded-2xl bg-[#09120c] border border-zinc-700/40 p-5 flex flex-col justify-between relative overflow-hidden shadow-xl">
+                <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-800/80 border border-zinc-600/40 text-[10px] font-pixel text-zinc-300">
+                  <span>🥈 2º LUGAR</span>
+                </div>
+
+                <div className="flex items-center gap-3.5 mb-4">
+                  <img
+                    src={top2.avatar}
+                    alt={top2.stageName}
+                    className="w-14 h-14 rounded-2xl object-cover border-2 border-zinc-400/50 shadow-md"
+                  />
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight flex items-center gap-1.5">
+                      {top2.stageName}
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-mono">@{top2.username}</p>
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-300">
+                      {top2.audience}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">Total Sacado (PIX):</span>
+                    <span className="font-pixel text-base font-bold text-zinc-200">
+                      {formatCurrency(top2.totalWithdrawnPix)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-zinc-500">
+                    <span>Principal jogo:</span>
+                    <span className="text-emerald-400 font-medium">{top2.topGameName}</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 flex items-center gap-1 bg-white/5 p-1.5 rounded-lg">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Último saque: R$ {top2.recentPixWithdrawal.amount.toFixed(2).replace(".", ",")} {top2.recentPixWithdrawal.timeAgo}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 1º LUGAR (CHAMPION) */}
+            {top1 && (
+              <div className="order-1 md:order-2 rounded-2xl bg-gradient-to-b from-[#132314] via-[#0b170e] to-[#070d08] border-2 border-amber-400/60 p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl shadow-amber-500/10 md:-translate-y-2">
+                <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-400/60 text-[10px] font-pixel text-amber-300 font-black">
+                  <Crown className="w-3.5 h-3.5 fill-amber-300" />
+                  <span>👑 TOP 1 GERAL</span>
+                </div>
+
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="relative">
+                    <img
+                      src={top1.avatar}
+                      alt={top1.stageName}
+                      className="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-lg shadow-amber-400/20"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-dark-950 flex items-center justify-center font-black text-xs">
+                      1
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="font-black text-white text-lg leading-tight flex items-center gap-1.5">
+                      {top1.stageName}
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
+                    </h3>
+                    <p className="text-xs text-amber-200/80 font-mono">@{top1.username}</p>
+                    <span className="inline-block mt-1 text-[10px] px-2.5 py-0.5 rounded-full bg-amber-400/10 text-amber-300 border border-amber-400/20 font-bold">
+                      {top1.audience}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-amber-400/20 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-300">Total Sacado (PIX):</span>
+                    <span className="font-pixel text-xl font-black text-emerald-400 drop-shadow-[0_0_12px_rgba(0,245,155,0.6)]">
+                      {formatCurrency(top1.totalWithdrawnPix)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span>Principal jogo:</span>
+                    <span className="text-emerald-300 font-semibold">{top1.topGameName}</span>
+                  </div>
+                  <div className="text-[11px] text-emerald-300/90 flex items-center gap-1.5 bg-black/40 border border-emerald-500/20 p-2 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Último saque: R$ {top1.recentPixWithdrawal.amount.toFixed(2).replace(".", ",")} {top1.recentPixWithdrawal.timeAgo}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3º LUGAR */}
+            {top3 && (
+              <div className="order-3 rounded-2xl bg-[#09120c] border border-amber-700/40 p-5 flex flex-col justify-between relative overflow-hidden shadow-xl">
+                <div className="absolute top-3 right-3 flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-900/30 border border-amber-700/40 text-[10px] font-pixel text-amber-400">
+                  <span>🥉 3º LUGAR</span>
+                </div>
+
+                <div className="flex items-center gap-3.5 mb-4">
+                  <img
+                    src={top3.avatar}
+                    alt={top3.stageName}
+                    className="w-14 h-14 rounded-2xl object-cover border-2 border-amber-700/50 shadow-md"
+                  />
+                  <div>
+                    <h3 className="font-bold text-white text-base leading-tight flex items-center gap-1.5">
+                      {top3.stageName}
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-mono">@{top3.username}</p>
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-white/5 text-zinc-300">
+                      {top3.audience}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-400">Total Sacado (PIX):</span>
+                    <span className="font-pixel text-base font-bold text-amber-200">
+                      {formatCurrency(top3.totalWithdrawnPix)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-zinc-500">
+                    <span>Principal jogo:</span>
+                    <span className="text-emerald-400 font-medium">{top3.topGameName}</span>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 flex items-center gap-1 bg-white/5 p-1.5 rounded-lg">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Último saque: R$ {top3.recentPixWithdrawal.amount.toFixed(2).replace(".", ",")} {top3.recentPixWithdrawal.timeAgo}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Quick List for 4º and 5º and View All Button */}
+          <div className="rounded-2xl bg-[#09120c] border border-white/5 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-zinc-300">
+              {otherTopCreators.map((creator) => (
+                <div key={creator.id} className="flex items-center gap-2.5">
+                  <span className="font-pixel text-xs text-zinc-500">{creator.rank}º</span>
+                  <img src={creator.avatar} alt={creator.stageName} className="w-7 h-7 rounded-lg object-cover" />
+                  <span className="font-bold text-white">{creator.stageName}</span>
+                  <span className="text-emerald-400 font-pixel text-[11px]">{formatCurrency(creator.totalWithdrawnPix)}</span>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/ranking"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs uppercase tracking-wider transition shrink-0"
+            >
+              <span>Ver Tabela Completa</span>
+              <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+            </Link>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* 3. PAINEL DE AFILIADO & SAQUE PIX (CONSOLIDAÇÃO MULTI-JOGOS)              */}
         {/* ========================================================================= */}
         <section className="relative rounded-3xl bg-gradient-to-br from-[#0c1912] via-[#09120d] to-[#040805] border-2 border-emerald-500/40 p-6 sm:p-8 shadow-2xl shadow-emerald-500/10 arcade-box overflow-hidden">
           <div className="arcade-scanlines pointer-events-none opacity-30" />
@@ -91,7 +271,7 @@ export default function LandingPage() {
             <div className="space-y-3">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-pixel text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>NOVIDADE • PAINEL UNIFICADO DE AFILIADOS</span>
+                <span>PAINEL UNIFICADO DE AFILIADOS</span>
               </div>
 
               <h2 className="font-pixel text-2xl sm:text-3xl text-white uppercase tracking-wide leading-tight">
@@ -100,7 +280,7 @@ export default function LandingPage() {
               </h2>
 
               <p className="text-zinc-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
-                Chega de gerenciar links espalhados! Divulgue o <strong>Fruit Cash</strong>, <strong>KRS 777 Casino</strong>, <strong>Blockerino</strong> e <strong>Bubble Cash</strong> em um único painel e solicite saques consolidados instantâneos via PIX na sua conta.
+                Divulgue o <strong>Fruit Cash</strong>, <strong>KRS 777 Casino</strong>, <strong>Blockerino</strong> e <strong>Bubble Cash</strong> em um único painel e solicite saques consolidados instantâneos via PIX na sua conta.
               </p>
 
               {/* 4 Games Badges */}
@@ -139,166 +319,12 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-
-        {/* ========================================================================= */}
-        {/* 4. COMO FUNCIONA: A JORNADA DO CREATOR                                   */}
-        {/* ========================================================================= */}
-        <section id="como-funciona" className="py-12 border-t border-white/5">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold text-emerald-400 mb-2">
-              <Layers className="w-4 h-4" />
-              Direto ao Ponto
-            </div>
-            <h2 className="font-pixel text-2xl sm:text-3xl text-white uppercase tracking-wider">
-              Como Funciona o Corre
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 mt-2">
-              Etapas simples, links de afiliados exclusivos e roteiros mastigados pra você focar em criar conteúdo massa.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {[
-              { num: "01", title: "Escolha o Jogo", desc: "Selecione Fruit Cash, KRS 777, Blockerino ou Bubble Cash no seu painel." },
-              { num: "02", title: "Pegue seu Link", desc: "Copie seu link de afiliado rastreado e baixe nossos roteiros e templates." },
-              { num: "03", title: "Solte o Gameplay", desc: "Grave partidas reais, mostre seus recordes e publique nos Reels, Stories e TikTok." },
-              { num: "04", title: "Acompanhe os Leads", desc: "Veja cliques, cadastros e depósitos pingando em tempo real no feed de conversões." },
-              { num: "05", title: "Saque via PIX 💸", desc: "Comissões acumuladas de todos os 4 jogos liberadas na hora para a sua chave PIX." },
-            ].map((step, idx) => (
-              <div
-                key={step.num}
-                className="p-5 rounded-2xl bg-[#0a110c] border border-emerald-500/20 flex flex-col justify-between"
-              >
-                <div className="h-8 w-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-pixel text-xs mb-3">
-                  {step.num}
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white mb-1.5">{step.title}</h4>
-                  <p className="text-xs text-zinc-400 leading-relaxed">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* 5. GAMIFICAÇÃO & CREATOR PASS                                             */}
-        {/* ========================================================================= */}
-        <section id="gamificacao" className="py-12 border-t border-white/5">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7 space-y-4">
-              <div className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold text-emerald-400">
-                <Trophy className="w-4 h-4" />
-                Gamificação & Recompensas
-              </div>
-              <h2 className="font-pixel text-2xl sm:text-3xl text-white uppercase tracking-wider leading-tight">
-                Creator Pass & Níveis de Prestígio
-              </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                Aqui sua dedicação vale ouro. Cada lead indicado e conteúdo aprovado soma XP na sua conta, avança marcos no <strong>Creator Pass</strong>, aumenta seus multiplicadores de ganhos e destrava premiações exclusivas da comunidade.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="p-4 rounded-2xl bg-[#0a110c] border border-white/5 flex items-start gap-3">
-                  <Flame className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Streaks de Consistência</h4>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">Bônus por semanas consecutivas com campanhas e divulgação ativa.</p>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-[#0a110c] border border-white/5 flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Saques 24/7 sem Burocracia</h4>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">Solicite qualquer valor a qualquer hora diretamente via PIX.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center gap-3">
-                <Link
-                  href="/creator-pass"
-                  className="px-5 py-3 rounded-xl bg-emerald-500 text-dark-950 font-black text-xs uppercase tracking-wider hover:bg-emerald-400 transition"
-                >
-                  Ver Creator Pass
-                </Link>
-                <Link
-                  href="/ranking"
-                  className="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-xs transition"
-                >
-                  Ver Ranking Geral
-                </Link>
-              </div>
-            </div>
-
-            {/* Visual Pass Card */}
-            <div className="lg:col-span-5 rounded-3xl border-2 border-emerald-500/30 bg-[#0a110c] p-6 shadow-2xl relative overflow-hidden arcade-box">
-              <div className="arcade-scanlines pointer-events-none opacity-20" />
-              <div className="flex items-center justify-between pb-4 border-b border-white/5">
-                <div>
-                  <span className="text-[9px] font-pixel text-emerald-400 uppercase">TEMPORADA 1</span>
-                  <h3 className="font-pixel text-sm text-white mt-1">CYBER GENESIS</h3>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">
-                  14 DIAS RESTANTES
-                </span>
-              </div>
-
-              <div className="py-4 space-y-2">
-                <div className="flex justify-between text-xs text-zinc-400">
-                  <span>Progresso do Passe</span>
-                  <span className="text-emerald-400 font-bold">Nível 5 de 10</span>
-                </div>
-                <div className="h-2.5 w-full rounded-full bg-dark-800 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-emerald-500 to-[#00F59B] w-1/2" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 pt-2">
-                <div className="p-3 rounded-xl bg-black/60 border border-white/5 text-center">
-                  <div className="text-[9px] font-pixel text-zinc-500">LVL 1</div>
-                  <div className="text-[10px] font-bold text-emerald-400 mt-1">DESBLOQUEADO</div>
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-emerald-400/40 text-center">
-                  <div className="text-[9px] font-pixel text-emerald-400">LVL 5</div>
-                  <div className="text-[10px] font-bold text-white mt-1">EM CURSO</div>
-                </div>
-                <div className="p-3 rounded-xl bg-black/60 border border-white/5 text-center opacity-50">
-                  <div className="text-[9px] font-pixel text-zinc-600">LVL 10</div>
-                  <div className="text-[10px] font-medium text-zinc-400 mt-1">BLOQUEADO</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ========================================================================= */}
-        {/* 6. TRANSPARÊNCIA: JOGOS 100% DE HABILIDADE                                */}
-        {/* ========================================================================= */}
-        <section className="py-8 border-t border-white/5">
-          <div className="rounded-2xl border border-emerald-500/20 bg-[#0a110c] p-6 sm:p-8">
-            <div className="flex flex-col sm:flex-row items-center gap-5">
-              <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                <ShieldCheck className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white mb-1">
-                  Papo Reto: Ecossistema Oficial de Jogos de Habilidade & Cassino KRS
-                </h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Não compactuamos com promessas de dinheiro fácil ou prints bancários falsos. Nossos jogos de habilidade e reflexo possuem premiações reais e saques instantâneos via PIX auditados. Divulgue com credibilidade para sua audiência.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* ========================================================================= */}
-      {/* 7. FOOTER                                                                 */}
+      {/* 4. FOOTER                                                                 */}
       {/* ========================================================================= */}
-      <footer className="border-t border-white/5 bg-[#050806] py-10 px-4 sm:px-6 lg:px-8 text-xs text-zinc-500">
+      <footer className="border-t border-white/5 bg-[#050806] py-8 px-4 sm:px-6 lg:px-8 text-xs text-zinc-500 mt-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 rounded-xl bg-emerald-500 text-dark-950 font-pixel flex items-center justify-center text-xs font-black">
@@ -311,14 +337,14 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-zinc-400">
+            <Link href="/jogos" className="hover:text-emerald-400 transition font-bold">Jogos</Link>
+            <Link href="/ranking" className="hover:text-emerald-400 transition font-bold">Ranking</Link>
             <Link href="/afiliados" className="hover:text-emerald-400 transition font-bold text-emerald-400">
               Painel do Afiliado
             </Link>
-            <Link href="/jogos" className="hover:text-white transition">Jogos</Link>
-            <Link href="/campanhas" className="hover:text-white transition">Campanhas</Link>
+            <Link href="/perfil" className="hover:text-white transition">Minha Conta</Link>
             <Link href="/termos" className="hover:text-white transition">Termos</Link>
-            <Link href="/privacidade" className="hover:text-white transition">Privacidade</Link>
-            <Link href="/ajuda" className="hover:text-white transition">Central de Ajuda</Link>
+            <Link href="/ajuda" className="hover:text-white transition">Ajuda</Link>
           </div>
         </div>
       </footer>

@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { GameCategory } from "@/types";
-import { PromotionalCarousel } from "@/components/gaming/PromotionalCarousel";
 import { ArcadeGameCard } from "@/components/gaming/ArcadeGameCard";
 
 const CATEGORIES: ("Todos" | GameCategory)[] = [
@@ -85,10 +84,6 @@ export default function GamesCatalogPage() {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 1. HERO CAROUSEL BANNER (exact match of user screenshot)                  */}
-      {/* ========================================================================= */}
-      <PromotionalCarousel />
 
       {/* ========================================================================= */}
       {/* 2. ARCADE CATEGORY TITLE & SEARCH: "🎮 JOGOS"                             */}

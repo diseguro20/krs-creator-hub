@@ -14,6 +14,8 @@ import {
   ExternalLink,
   ShieldCheck,
   Gamepad2,
+  Trophy,
+  User,
   LogOut
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
@@ -62,29 +64,18 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             <span>Jogos</span>
           </Link>
           <Link
+            href="/ranking"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition flex items-center gap-1.5"
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Ranking</span>
+          </Link>
+          <Link
             href="/afiliados"
             className="px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400 hover:text-white hover:bg-white/5 transition flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5 text-emerald-400" />
             <span>Painel Afiliado</span>
-          </Link>
-          <Link
-            href="/campanhas"
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition"
-          >
-            Campanhas
-          </Link>
-          <Link
-            href="/creator-pass"
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition"
-          >
-            Creator Pass
-          </Link>
-          <Link
-            href="/ranking"
-            className="px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition"
-          >
-            Ranking
           </Link>
         </nav>
 
@@ -272,6 +263,15 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             </Link>
 
             <Link
+              href="/ranking"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
+            >
+              <Trophy className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Ranking Geral</span>
+            </Link>
+
+            <Link
               href="/afiliados"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-emerald-500/30 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
@@ -281,21 +281,12 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             </Link>
 
             <Link
-              href="/campanhas"
+              href={currentUser ? "/perfil" : "/login"}
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
             >
-              <Flame className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Campanhas</span>
-            </Link>
-
-            <Link
-              href="/ranking"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
-            >
-              <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>Ranking Geral</span>
+              <User className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span>{currentUser ? "Meu Perfil" : "Minha Conta"}</span>
             </Link>
           </div>
 

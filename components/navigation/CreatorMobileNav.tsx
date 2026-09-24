@@ -3,13 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Layers, Gamepad2, Trophy, User, Zap } from "lucide-react";
+import { LayoutDashboard, Gamepad2, Trophy, User, Zap } from "lucide-react";
 
 const MOBILE_TABS = [
-  { label: "Home", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Afiliado", href: "/afiliados", icon: Zap },
-  { label: "Campanhas", href: "/campanhas", icon: Layers },
   { label: "Jogos", href: "/jogos", icon: Gamepad2 },
+  { label: "Ranking", href: "/ranking", icon: Trophy },
+  { label: "Afiliado", href: "/afiliados", icon: Zap },
   { label: "Perfil", href: "/perfil", icon: User },
 ];
 

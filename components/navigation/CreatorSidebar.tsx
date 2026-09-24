@@ -24,16 +24,18 @@ import { useKrsStore } from "@/lib/store/useKrsStore";
 import { CreatorProfile } from "@/types";
 import { formatXP } from "@/lib/utils";
 
-const NAV_ITEMS = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Painel de Afiliado", href: "/afiliados", icon: Zap, badge: "PIX" },
-  { label: "Campanhas", href: "/campanhas", icon: Layers, badge: "No Ar" },
   { label: "Nossos Jogos", href: "/jogos", icon: Gamepad2 },
-  { label: "Roteiros & Banners", href: "/materiais", icon: FolderDown },
-  { label: "Creator Pass", href: "/creator-pass", icon: Trophy, accent: true },
-  { label: "Troféus & Badges", href: "/conquistas", icon: Award },
-  { label: "Ranking", href: "/ranking", icon: TrendingUp },
-  { label: "Prévia no Celular", href: "/mockup-tool", icon: Smartphone, demoTag: true },
+  { label: "Ranking dos Creators", href: "/ranking", icon: TrendingUp },
   { label: "Meu Perfil", href: "/perfil", icon: User },
 ];
 
@@ -126,11 +128,6 @@ export function CreatorSidebar() {
                   </span>
                 )}
 
-                {item.demoTag && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-400 text-[9px] font-medium">
-                    DEMO
-                  </span>
-                )}
               </Link>
             );
           })}
