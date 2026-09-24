@@ -23,11 +23,13 @@ import {
   RotateCcw,
   Clock,
   Layers,
-  Award
+  Award,
+  Crown
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { formatCurrency } from "@/lib/utils";
 import { GameAffiliateStats, AffiliateConversionRecord, Game } from "@/types";
+import { SIMULATED_AFFILIATE_INFLUENCERS } from "@/lib/affiliate-leaderboard-data";
 
 export default function AffiliateHubPage() {
   const {
@@ -468,6 +470,98 @@ export default function AffiliateHubPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3.5 TOP AFILIADOS DA PLATAFORMA (PROVA SOCIAL)                            */}
+      {/* ========================================================================= */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🏆</span>
+              <h2 className="font-pixel text-base sm:text-lg text-white uppercase tracking-wider">
+                TOP AFILIADOS DA PLATAFORMA
+              </h2>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-pixel border border-emerald-500/30">
+                TEMPORADA 2026
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Criadores e streamers que mais estão faturando comissões automáticas via PIX promovendo nossos 4 jogos.
+            </p>
+          </div>
+
+          <Link
+            href="/ranking"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-dark-900 hover:bg-dark-850 border border-emerald-500/30 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
+          >
+            <span>Ver Ranking Completo</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {SIMULATED_AFFILIATE_INFLUENCERS.slice(0, 4).map((inf) => (
+            <div
+              key={inf.id}
+              className="relative rounded-3xl bg-[#0c140f] border border-white/10 hover:border-emerald-500/50 p-4 transition-all duration-200 shadow-lg flex flex-col justify-between group"
+            >
+              {/* Badge Rank */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/10 font-pixel text-xs font-bold text-white flex items-center gap-1">
+                  {inf.rank === 1 && "🥇 TOP 1"}
+                  {inf.rank === 2 && "🥈 TOP 2"}
+                  {inf.rank === 3 && "🥉 TOP 3"}
+                  {inf.rank > 3 && `#${inf.rank}`}
+                </span>
+                <span
+                  className="px-2 py-0.5 rounded-md text-[10px] font-bold border"
+                  style={{
+                    borderColor: `${inf.topGameColor}33`,
+                    backgroundColor: `${inf.topGameColor}15`,
+                    color: inf.topGameColor,
+                  }}
+                >
+                  {inf.topGameEmoji} {inf.topGameName}
+                </span>
+              </div>
+
+              {/* Creator Info */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-white/10">
+                  <img src={inf.avatar} alt={inf.stageName} className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-sm text-white truncate">{inf.stageName}</span>
+                    {inf.verified && <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />}
+                  </div>
+                  <div className="text-[11px] text-zinc-400 truncate">@{inf.username}</div>
+                  <div className="text-[10px] text-zinc-500">{inf.audience}</div>
+                </div>
+              </div>
+
+              {/* Stats Box */}
+              <div className="pt-3 border-t border-white/5 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-zinc-400">Total Sacado PIX:</span>
+                  <span className="font-pixel text-sm text-emerald-400 font-black">
+                    {formatCurrency(inf.totalWithdrawnPix)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                  <span>Leads convertidos:</span>
+                  <span className="font-bold text-white">{inf.totalLeads}</span>
+                </div>
+                <div className="text-[10px] text-zinc-500 font-mono pt-1 border-t border-white/5 flex items-center justify-between">
+                  <span>Último saque:</span>
+                  <span className="text-zinc-400">{inf.recentPixWithdrawal.timeAgo}</span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
