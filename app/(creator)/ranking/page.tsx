@@ -86,18 +86,20 @@ export default function RankingPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-primary mb-1">
-            <Trophy className="w-4 h-4" />
-            Classificação Profissional
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[10px] font-pixel text-emerald-400 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>LEADERBOARD • SEASON 1</span>
           </div>
-          <h1 className="text-3xl font-black text-white">Ranking dos Creators</h1>
+          <h1 className="font-pixel text-2xl sm:text-3xl text-white uppercase tracking-wider drop-shadow-[0_0_12px_rgba(0,245,155,0.4)]">
+            RANKING DOS CREATORS
+          </h1>
           <p className="text-xs text-zinc-400 mt-1">
-            Métricas baseadas em qualidade de entrega, pontualidade, consistência e XP profissional.
+            Métricas baseadas em qualidade de entrega, pontualidade, consistência e XP profissional de todos os jogos da KRS.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-dark-900 border border-brand-primary/20 text-xs text-zinc-300">
-          <ShieldCheck className="w-4 h-4 text-brand-primary" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-dark-900 border border-emerald-500/30 text-xs text-zinc-300">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Critérios Éticos & Transparentes</span>
         </div>
       </div>
@@ -123,21 +125,26 @@ export default function RankingPage() {
         </div>
 
         {/* Rank 1 - Champion */}
-        <div className="rounded-3xl border-2 border-brand-primary/40 bg-dark-900 p-6 sm:p-8 flex flex-col items-center text-center justify-between shadow-2xl shadow-brand-primary/10 order-1 md:order-2 md:-translate-y-2">
-          <div>
-            <div className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-amber-400 mb-2">
-              <Crown className="w-4 h-4 fill-amber-400" />
-              #1 LUGAR • LÍDER DA TEMPORADA
-            </div>
-            <div className="h-20 w-20 rounded-2xl overflow-hidden bg-dark-850 border-2 border-amber-400 mb-3 mx-auto shadow-xl shadow-brand-primary/20">
+        <div className="relative rounded-3xl border-2 border-emerald-400 bg-gradient-to-b from-[#0f1d14] to-[#07100b] p-6 sm:p-8 flex flex-col items-center text-center justify-between shadow-2xl shadow-emerald-500/20 arcade-box order-1 md:order-2 md:-translate-y-2">
+          <div className="arcade-scanlines pointer-events-none opacity-20" />
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-dark-950 font-black text-[9px] font-pixel flex items-center gap-1 shadow-lg">
+            <Crown className="w-3.5 h-3.5 fill-dark-950" />
+            TOP 1
+          </div>
+
+          <div className="mt-2">
+            <div className="h-20 w-20 rounded-2xl overflow-hidden bg-dark-850 border-2 border-emerald-400 mb-3 mx-auto shadow-xl shadow-emerald-500/30">
               <img src={LEADERBOARD_USERS[0].avatar} alt="" className="h-full w-full object-cover" />
             </div>
-            <h3 className="text-base font-bold text-white">{LEADERBOARD_USERS[0].name}</h3>
-            <div className="text-xs text-brand-primary font-semibold">@{LEADERBOARD_USERS[0].username} (Você)</div>
+            <h3 className="text-base font-bold text-white flex items-center justify-center gap-1.5">
+              <span>{LEADERBOARD_USERS[0].name}</span>
+              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-pixel">VOCÊ</span>
+            </h3>
+            <div className="text-xs text-emerald-400 font-semibold font-mono">@{LEADERBOARD_USERS[0].username}</div>
           </div>
-          <div className="mt-4 pt-3 border-t border-white/5 w-full flex justify-between text-xs">
+          <div className="mt-4 pt-3 border-t border-emerald-500/20 w-full flex justify-between text-xs">
             <span className="text-zinc-400">Pontuação:</span>
-            <span className="font-bold text-brand-primary text-sm">{formatXP(LEADERBOARD_USERS[0].xp)}</span>
+            <span className="font-pixel text-emerald-400 font-black text-sm">{formatXP(LEADERBOARD_USERS[0].xp)}</span>
           </div>
         </div>
 

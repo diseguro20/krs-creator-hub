@@ -60,6 +60,13 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             <span>Jogos</span>
           </Link>
           <Link
+            href="/afiliados"
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400 hover:text-white hover:bg-white/5 transition flex items-center gap-1.5"
+          >
+            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Painel Afiliado</span>
+          </Link>
+          <Link
             href="/campanhas"
             className="px-3 py-1.5 rounded-xl text-xs font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition"
           >
@@ -144,6 +151,15 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
                     <ArrowUpRight className="w-4 h-4 text-green-400" />
                     <span>Sacar via PIX Instantâneo</span>
                   </button>
+
+                  <Link
+                    href="/afiliados"
+                    onClick={() => setDropdownOpen(false)}
+                    className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-emerald-500/10 text-xs text-left text-emerald-400 hover:text-emerald-300 transition font-bold"
+                  >
+                    <Zap className="w-4 h-4 text-emerald-400" />
+                    <span>Painel de Afiliado (4 Jogos)</span>
+                  </Link>
 
                   <Link
                     href="/dashboard"

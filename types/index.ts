@@ -12,6 +12,8 @@ export interface UserProfile {
   role: UserRole;
   onboarding_completed: boolean;
   wallet_balance?: number;
+  is_affiliate?: boolean;
+  affiliate_code?: string;
   created_at: string;
   updated_at: string;
 }
@@ -47,6 +49,39 @@ export interface CaptadorProfile extends UserProfile {
   total_referred: number;
   active_creators: number;
   campaigns_completed_by_referred: number;
+}
+
+export interface GameAffiliateStats {
+  game_id: string;
+  game_name: string;
+  game_slug: string;
+  category: string;
+  primary_color: string;
+  logo_url: string;
+  thumbnail_url: string;
+  referral_param: string; // e.g. 'ref' or 'r'
+  referral_url: string;
+  clicks: number;
+  signups: number;
+  deposits_count: number;
+  total_deposited: number;
+  commission_earned: number;
+  available_balance: number;
+  commission_rate: string;
+}
+
+export interface AffiliateConversionRecord {
+  id: string;
+  game_id: string;
+  game_name: string;
+  game_slug: string;
+  lead_name: string;
+  lead_username: string;
+  type: "deposit" | "signup" | "tournament" | "slot_revenue";
+  amount_deposited?: number;
+  commission_amount: number;
+  status: "paid" | "available" | "pending";
+  created_at: string;
 }
 
 export type GameCategory = "Habilidade" | "Arcade" | "Puzzle" | "Reflexo" | "Casual" | "Cassino";

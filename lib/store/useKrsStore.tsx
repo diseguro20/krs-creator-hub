@@ -19,6 +19,8 @@ import {
   AppNotification,
   ActivityLog,
   ReferralRecord,
+  GameAffiliateStats,
+  AffiliateConversionRecord,
 } from "@/types";
 import {
   DEMO_ADMIN,
@@ -34,6 +36,8 @@ import {
   SEED_SCRIPTS,
   SEED_SUBMISSIONS,
   SEED_XP_EVENTS,
+  SEED_AFFILIATE_STATS,
+  SEED_AFFILIATE_CONVERSIONS,
 } from "@/lib/seed-data";
 
 interface KrsStoreContextType {
@@ -114,6 +118,13 @@ interface KrsStoreContextType {
   walletModalOpen: boolean;
   setWalletModalOpen: (open: boolean) => void;
 
+  // Unified Multi-Game Affiliate Hub
+  affiliateStats: GameAffiliateStats[];
+  affiliateConversions: AffiliateConversionRecord[];
+  totalAffiliateBalance: number;
+  withdrawAffiliate: (amount: number, pixKey: string, pixType: string, gameId?: string) => Promise<{ success: boolean; message: string; txId: string }>;
+  isAffiliateUser: boolean;
+
   // In-App Game Player
   playingGame: Game | null;
   openGamePlayer: (game: Game) => void;
@@ -132,6 +143,8 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<UserProfile | CreatorProfile | CaptadorProfile>(DEMO_CREATOR);
   const [games, setGames] = useState<Game[]>(SEED_GAMES);
   const [campaigns, setCampaigns] = useState<Campaign[]>(SEED_CAMPAIGNS);
+  const [affiliateStats, setAffiliateStats] = useState<GameAffiliateStats[]>(SEED_AFFILIATE_STATS);
+  const [affiliateConversions, setAffiliateConversions] = useState<AffiliateConversionRecord[]>(SEED_AFFILIATE_CONVERSIONS);
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
   const [creatorCampaigns, setCreatorCampaigns] = useState<Record<string, { currentStep: number; completedMissions: string[]; status: string }>>({
@@ -278,6 +291,8 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         if (parsed.notifications) setNotifications(parsed.notifications);
         if (parsed.activityLogs) setActivityLogs(parsed.activityLogs);
         if (parsed.settings) setSettings(parsed.settings);
+        if (parsed.affiliateStats) setAffiliateStats(parsed.affiliateStats);
+        if (parsed.affiliateConversions) setAffiliateConversions(parsed.affiliateConversions);
       }
     } catch (e) {
       console.warn("Could not load stored data:", e);
@@ -727,13 +742,17 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     setXpEvents(SEED_XP_EVENTS);
     setCreatorPass(SEED_CREATOR_PASS);
     setSettings(INITIAL_SETTINGS);
+    setAffiliateStats(SEED_AFFILIATE_STATS);
+    setAffiliateConversions(SEED_AFFILIATE_CONVERSIONS);
     window.location.reload();
   };
 
-  const walletBalance = currentUser.wallet_balance ?? 380.00;
+  const totalAffiliateBalance = affiliateStats.reduce((acc, curr) => acc + (curr.available_balance || 0), 0);
+  const walletBalance = currentUser.wallet_balance ?? totalAffiliateBalance;
+  const isAffiliateUser = currentUser.role === "INFLUENCER" || (currentUser as any).is_affiliate === true;
 
   const depositWallet = (amount: number) => {
-    const current = currentUser.wallet_balance ?? 380.00;
+    const current = currentUser.wallet_balance ?? totalAffiliateBalance;
     const newBal = current + amount;
     const updated = { ...currentUser, wallet_balance: newBal };
     setCurrentUser(updated);
@@ -742,13 +761,101 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const withdrawWallet = (amount: number, pixKey: string) => {
-    const current = currentUser.wallet_balance ?? 380.00;
+    const current = currentUser.wallet_balance ?? totalAffiliateBalance;
     if (amount > current) return;
     const newBal = current - amount;
     const updated = { ...currentUser, wallet_balance: newBal };
     setCurrentUser(updated);
     persist({ currentUser: updated });
     logAction("wallet_withdraw", `Saque PIX de R$ ${amount.toFixed(2)} solicitado para chave ${pixKey}.`);
+  };
+
+  const withdrawAffiliate = async (amount: number, pixKey: string, pixType: string, gameId?: string) => {
+    const txId = `PIX-${Math.random().toString(36).substring(2, 9).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+
+    if (gameId && gameId !== "all") {
+      const targetGame = affiliateStats.find((g) => g.game_id === gameId);
+      if (!targetGame || targetGame.available_balance < amount) {
+        return { success: false, message: "Saldo insuficiente para o jogo selecionado.", txId: "" };
+      }
+
+      const updatedStats = affiliateStats.map((g) => {
+        if (g.game_id === gameId) {
+          return { ...g, available_balance: Math.max(0, g.available_balance - amount) };
+        }
+        return g;
+      });
+      setAffiliateStats(updatedStats);
+
+      const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
+      const updatedUser = { ...currentUser, wallet_balance: newBal };
+      setCurrentUser(updatedUser);
+      persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+
+      logAction(
+        "affiliate_pix_withdrawal",
+        `Saque PIX de R$ ${amount.toFixed(2)} (${targetGame.game_name}) enviado para ${pixKey} (${pixType}). TxID: ${txId}`,
+        targetGame.game_id
+      );
+
+      const newNotif: AppNotification = {
+        id: `notif-pix-${Date.now()}`,
+        user_id: currentUser.id,
+        type: "admin_announcement",
+        title: "PIX Transferido com Sucesso! 💸",
+        message: `R$ ${amount.toFixed(2)} transferidos via PIX para ${pixKey}. Origem: ${targetGame.game_name}. TxID: ${txId}`,
+        read: false,
+        created_at: new Date().toISOString(),
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
+
+      return {
+        success: true,
+        message: `Saque de R$ ${amount.toFixed(2)} efetuado com sucesso via PIX!`,
+        txId,
+      };
+    } else {
+      const currentTotal = affiliateStats.reduce((acc, curr) => acc + (curr.available_balance || 0), 0);
+      if (amount > currentTotal) {
+        return { success: false, message: "Saldo total insuficiente para este saque consolidado.", txId: "" };
+      }
+
+      let remainingToDeduct = amount;
+      const updatedStats = affiliateStats.map((g) => {
+        if (remainingToDeduct <= 0) return g;
+        const deductFromThis = Math.min(g.available_balance, remainingToDeduct);
+        remainingToDeduct -= deductFromThis;
+        return { ...g, available_balance: Math.max(0, g.available_balance - deductFromThis) };
+      });
+      setAffiliateStats(updatedStats);
+
+      const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
+      const updatedUser = { ...currentUser, wallet_balance: newBal };
+      setCurrentUser(updatedUser);
+      persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+
+      logAction(
+        "affiliate_pix_withdrawal_total",
+        `Saque consolidado PIX de R$ ${amount.toFixed(2)} enviado para ${pixKey} (${pixType}). TxID: ${txId}`
+      );
+
+      const newNotif: AppNotification = {
+        id: `notif-pix-${Date.now()}`,
+        user_id: currentUser.id,
+        type: "admin_announcement",
+        title: "Saque Consolidado PIX Realizado! 💸",
+        message: `R$ ${amount.toFixed(2)} transferidos para a chave PIX ${pixKey}. TxID: ${txId}`,
+        read: false,
+        created_at: new Date().toISOString(),
+      };
+      setNotifications((prev) => [newNotif, ...prev]);
+
+      return {
+        success: true,
+        message: `Saque consolidado de R$ ${amount.toFixed(2)} efetuado com sucesso via PIX!`,
+        txId,
+      };
+    }
   };
 
   const openGamePlayer = (game: Game) => {
@@ -812,6 +919,11 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         withdrawWallet,
         walletModalOpen,
         setWalletModalOpen,
+        affiliateStats,
+        affiliateConversions,
+        totalAffiliateBalance,
+        withdrawAffiliate,
+        isAffiliateUser,
         playingGame,
         openGamePlayer,
         closeGamePlayer,

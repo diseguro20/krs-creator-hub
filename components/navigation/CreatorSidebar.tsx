@@ -17,6 +17,8 @@ import {
   LogOut,
   ChevronRight,
   TrendingUp,
+  Zap,
+  Wallet,
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { CreatorProfile } from "@/types";
@@ -24,6 +26,7 @@ import { formatXP } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Painel de Afiliado", href: "/afiliados", icon: Zap, badge: "PIX" },
   { label: "Campanhas", href: "/campanhas", icon: Layers, badge: "No Ar" },
   { label: "Nossos Jogos", href: "/jogos", icon: Gamepad2 },
   { label: "Roteiros & Banners", href: "/materiais", icon: FolderDown },

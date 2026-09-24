@@ -19,10 +19,19 @@ import {
 } from "lucide-react";
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { CreatorProfile } from "@/types";
-import { formatXP } from "@/lib/utils";
+import { formatXP, formatCurrency } from "@/lib/utils";
 
 export default function CreatorDashboardPage() {
-  const { currentUser, campaigns, creatorCampaigns, submissions, levels, badges } = useKrsStore();
+  const {
+    currentUser,
+    campaigns,
+    creatorCampaigns,
+    submissions,
+    levels,
+    badges,
+    totalAffiliateBalance,
+    affiliateStats,
+  } = useKrsStore();
   const creator = currentUser as CreatorProfile;
 
   // Level progress
@@ -137,6 +146,56 @@ export default function CreatorDashboardPage() {
               Faltam só <strong className="text-white">{formatXP(xpNeeded)}</strong> pra subir de nível!
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 1.5. PAINEL DE AFILIADO UNIFICADO: MULTI-JOGOS PIX                      */}
+      {/* ========================================================================= */}
+      <div className="relative rounded-3xl bg-gradient-to-r from-[#0a140f] via-[#09100c] to-[#040805] border-2 border-emerald-500/40 p-5 sm:p-6 shadow-xl shadow-emerald-500/10 arcade-box overflow-hidden">
+        <div className="arcade-scanlines pointer-events-none opacity-30" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-pixel text-emerald-400 uppercase tracking-wider">
+                PAINEL UNIFICADO DE AFILIADO
+              </span>
+              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                4 JOGOS ATIVOS
+              </span>
+            </div>
+
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <span className="text-xs text-zinc-400 font-medium">Saldo Total a Sacar:</span>
+              <span className="font-pixel text-2xl sm:text-3xl text-emerald-400 font-black drop-shadow-[0_0_10px_rgba(0,245,155,0.5)]">
+                {formatCurrency(totalAffiliateBalance)}
+              </span>
+            </div>
+
+            {/* 4 Mini Pills */}
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              {affiliateStats.map((game) => (
+                <div
+                  key={game.game_id}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 border border-white/5 text-[11px]"
+                >
+                  <span className="text-zinc-400">{game.game_name.split(" ")[0]}:</span>
+                  <span className="font-bold text-white">{formatCurrency(game.available_balance)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Link
+            href="/afiliados"
+            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95 shrink-0"
+          >
+            <Zap className="w-4 h-4 fill-dark-950" />
+            <span>ACESSAR PAINEL & SACAR PIX</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
 
