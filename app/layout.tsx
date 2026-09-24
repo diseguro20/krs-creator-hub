@@ -1,9 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { KrsStoreProvider } from "@/lib/store/useKrsStore";
 import { LevelUpCelebrationModal } from "@/components/gamification/LevelUpCelebrationModal";
 import { InAppGameModal } from "@/components/gaming/InAppGameModal";
 import { WalletModal } from "@/components/gaming/WalletModal";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#070c09",
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "KRS CREATOR HUB - Gestão & Gamificação de Influencers e Captadores",

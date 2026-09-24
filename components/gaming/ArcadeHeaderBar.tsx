@@ -26,9 +26,10 @@ interface ArcadeHeaderBarProps {
 export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) {
   const { currentUser, walletBalance, setWalletModalOpen, logout } = useKrsStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0a0f0c]/90 backdrop-blur-xl border-b border-emerald-500/20 px-3 sm:px-6 py-2.5 shadow-lg shadow-black/50">
+    <header className="sticky top-0 z-40 w-full bg-[#0a0f0c] md:bg-[#0a0f0c]/95 md:backdrop-blur-xl border-b border-emerald-500/20 px-3 sm:px-6 py-2.5 shadow-lg shadow-black/50">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Left: Brand Logo styled with gaming badge aesthetic */}
         <Link href="/" className="flex items-center gap-2 group">
@@ -200,28 +201,46 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
             >
               <LogOut className="w-4 h-4" />
             </button>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+              className="md:hidden p-2 rounded-xl bg-dark-900 border border-white/10 text-zinc-300 hover:text-white hover:border-emerald-500/40 transition active:scale-95 cursor-pointer"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4 text-emerald-400" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
               href="/login"
-              className="px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-emerald-500/40 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
+              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-white/10 hover:border-emerald-500/40 text-xs font-bold text-zinc-300 hover:text-white transition cursor-pointer"
             >
               Entrar
             </Link>
             <Link
               href="/cadastro"
-              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95 cursor-pointer"
+              className="flex items-center gap-1 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/25 transition active:scale-95 cursor-pointer whitespace-nowrap"
             >
-              <Zap className="w-3.5 h-3.5 fill-dark-950" />
+              <Zap className="w-3.5 h-3.5 fill-dark-950 hidden sm:inline" />
               <span>Criar Conta</span>
             </Link>
+
+            {/* Mobile Menu Toggle Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+              className="md:hidden p-2 rounded-xl bg-dark-900 border border-white/10 text-zinc-300 hover:text-white hover:border-emerald-500/40 transition active:scale-95 cursor-pointer"
+            >
+              {mobileMenuOpen ? <X className="w-4 h-4 text-emerald-400" /> : <Menu className="w-4 h-4" />}
+            </button>
           </div>
         )}
       </div>
 
       {/* Mobile Balance sub-row (when on very narrow mobile screens and logged in) */}
-      {currentUser && (
+      {currentUser && !mobileMenuOpen && (
         <div className="sm:hidden flex items-center justify-between pt-1.5 mt-1 border-t border-white/5 text-[11px] font-bold">
           <div
             onClick={() => setWalletModalOpen(true)}
@@ -236,6 +255,108 @@ export function ArcadeHeaderBar({ showRoleBadge = true }: ArcadeHeaderBarProps) 
           <Link href="/afiliados" className="text-zinc-400 hover:text-white text-[10px]">
             Ver Painel →
           </Link>
+        </div>
+      )}
+
+      {/* Mobile Drawer Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden pt-3 pb-2 mt-2 border-t border-white/10 space-y-2.5 animate-in slide-in-from-top-2 duration-150">
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/jogos"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
+            >
+              <Gamepad2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Jogos Oficiais</span>
+            </Link>
+
+            <Link
+              href="/afiliados"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-emerald-500/30 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition"
+            >
+              <Zap className="w-4 h-4 text-emerald-400 shrink-0" />
+              <span>Painel Afiliados</span>
+            </Link>
+
+            <Link
+              href="/campanhas"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
+            >
+              <Flame className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Campanhas</span>
+            </Link>
+
+            <Link
+              href="/ranking"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 p-2.5 rounded-xl bg-dark-900 border border-white/5 text-xs font-bold text-zinc-200 hover:text-white hover:border-emerald-500/40 transition"
+            >
+              <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span>Ranking Geral</span>
+            </Link>
+          </div>
+
+          {/* Quick Wallet Actions on Mobile */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setWalletModalOpen(true);
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 text-dark-950 font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-500/20 active:scale-95 transition cursor-pointer"
+            >
+              <ArrowDownLeft className="w-3.5 h-3.5" />
+              <span>Depositar PIX</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setWalletModalOpen(true);
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-dark-900 hover:bg-dark-850 border border-emerald-500/30 text-emerald-400 font-bold text-xs active:scale-95 transition cursor-pointer"
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Sacar PIX</span>
+            </button>
+          </div>
+
+          {/* Auth options if not logged in */}
+          {!currentUser ? (
+            <div className="flex items-center gap-2 pt-1 border-t border-white/5">
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 text-center py-2.5 rounded-xl bg-dark-900 border border-white/10 text-xs font-bold text-zinc-300 hover:text-white"
+              >
+                Fazer Login
+              </Link>
+              <Link
+                href="/cadastro"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex-1 text-center py-2.5 rounded-xl bg-emerald-500 text-dark-950 font-black text-xs uppercase tracking-wider"
+              >
+                Cadastrar-se
+              </Link>
+            </div>
+          ) : (
+            <div className="pt-1 border-t border-white/5">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                  window.location.reload();
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs font-bold text-red-400 hover:bg-red-500/20 transition cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sair da Conta</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>

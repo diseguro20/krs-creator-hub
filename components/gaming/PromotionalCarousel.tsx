@@ -77,6 +77,29 @@ const SLIDES: CarouselSlide[] = [
 export function PromotionalCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { games, openGamePlayer, setWalletModalOpen } = useKrsStore();
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 40;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) {
+      handleNext();
+    } else if (distance < -minSwipeDistance) {
+      handlePrev();
+    }
+  };
 
   const handleNext = () => {
     setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
@@ -112,10 +135,15 @@ export function PromotionalCarousel() {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto my-4 sm:my-6">
+    <div
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className="relative w-full max-w-5xl mx-auto my-3 sm:my-6 select-none touch-pan-y"
+    >
       {/* Main Banner Card */}
       <div
-        className={`relative overflow-hidden rounded-3xl border bg-gradient-to-r ${slide.gradient} ${slide.borderColor} shadow-2xl transition-all duration-700 min-h-[200px] sm:min-h-[230px] md:min-h-[260px] flex items-center`}
+        className={`relative overflow-hidden rounded-3xl border bg-gradient-to-r ${slide.gradient} ${slide.borderColor} shadow-2xl transition-all duration-500 min-h-[190px] sm:min-h-[230px] md:min-h-[260px] flex items-center`}
       >
         {/* Animated background particles & ambient grid */}
         <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none" />

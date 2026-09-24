@@ -44,9 +44,9 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-6 sm:py-12 px-3 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-flex items-center gap-2.5 mb-6 group">
+        <Link href="/" className="inline-flex items-center gap-2.5 mb-4 sm:mb-6 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary text-dark-950 font-black shadow-lg shadow-brand-primary/20">
             <Gamepad2 className="w-6 h-6 text-dark-950" />
           </div>
@@ -54,16 +54,16 @@ function RegisterForm() {
             KRS <span className="text-brand-primary">CREATOR</span> HUB
           </span>
         </Link>
-        <h2 className="text-2xl font-bold tracking-tight text-white">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
           Crie seu perfil de parceiro
         </h2>
-        <p className="mt-1.5 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-zinc-400">
           Acesso imediato ao catálogo de campanhas e ao Creator Pass.
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="rounded-2xl border border-white/10 bg-dark-900/90 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
+      <div className="mt-5 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-1 sm:px-4">
+        <div className="rounded-2xl border border-white/10 bg-dark-900/90 md:backdrop-blur-xl p-4 sm:p-8 shadow-2xl">
           <form onSubmit={handleRegister} className="space-y-4">
             {/* Role Switcher */}
             <div>

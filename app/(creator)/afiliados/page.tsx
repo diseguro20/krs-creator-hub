@@ -765,8 +765,8 @@ export default function AffiliateHubPage() {
       {/* 5. MODAL DE SAQUE INSTANTÂNEO VIA PIX                                     */}
       {/* ========================================================================= */}
       {withdrawModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg rounded-3xl bg-[#0a110c] border-2 border-emerald-500/40 p-6 shadow-2xl shadow-emerald-500/20 arcade-box max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 md:backdrop-blur-md animate-in fade-in duration-150">
+          <div className="relative w-full max-w-lg rounded-3xl bg-[#0a110c] border-2 border-emerald-500/40 p-4 sm:p-6 shadow-2xl shadow-emerald-500/20 arcade-box max-h-[92vh] overflow-y-auto">
             {/* Close Button */}
             <button
               onClick={() => {

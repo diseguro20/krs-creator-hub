@@ -17,7 +17,7 @@ export function CreatorMobileNav() {
   const pathname = usePathname();
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-dark-950/95 backdrop-blur-xl px-2 py-1.5 shadow-2xl shadow-black">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-emerald-500/20 bg-[#09100b] md:bg-dark-950/95 md:backdrop-blur-xl px-2 pt-1.5 pb-[calc(0.4rem+env(safe-area-inset-bottom,0px))] shadow-2xl shadow-black">
       <nav className="flex items-center justify-around">
         {MOBILE_TABS.map((tab) => {
           const isActive = pathname === tab.href || (tab.href !== "/dashboard" && pathname.startsWith(tab.href));

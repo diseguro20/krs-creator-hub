@@ -64,8 +64,8 @@ export function WalletModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl bg-[#0a120c] border-2 border-emerald-500/40 shadow-2xl p-6 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 md:backdrop-blur-xl animate-in fade-in duration-150">
+      <div className="relative w-full max-w-lg rounded-3xl bg-[#0a120c] border-2 border-emerald-500/40 shadow-2xl p-4 sm:p-6 max-h-[92vh] overflow-y-auto arcade-box">
         {/* Ambient glow */}
         <div className="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
 

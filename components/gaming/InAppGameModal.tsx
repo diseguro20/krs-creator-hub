@@ -34,13 +34,13 @@ export function InAppGameModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1.5 sm:p-4 bg-black/85 md:backdrop-blur-xl animate-in fade-in duration-150">
       {/* Modal Container */}
       <div
-        className={`relative w-full rounded-3xl bg-[#0a0f0c] border-2 border-emerald-500/40 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 ${
+        className={`relative w-full rounded-2xl sm:rounded-3xl bg-[#0a0f0c] border border-emerald-500/30 sm:border-2 sm:border-emerald-500/40 shadow-2xl flex flex-col overflow-hidden transition-all duration-200 ${
           fullscreen
             ? "fixed inset-0 rounded-none border-0 h-screen max-w-none"
-            : "max-w-4xl max-h-[92vh] h-[850px]"
+            : "max-w-4xl max-h-[96vh] sm:max-h-[92vh] h-[92vh] sm:h-[850px]"
         }`}
       >
         {/* Top Header Bar */}

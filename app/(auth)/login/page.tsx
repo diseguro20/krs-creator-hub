@@ -38,12 +38,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-6 sm:py-12 px-3 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Subtle ambient light */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-primary/10 blur-[130px] rounded-full pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-flex items-center gap-2.5 mb-6 group">
+        <Link href="/" className="inline-flex items-center gap-2.5 mb-4 sm:mb-6 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-primary text-dark-950 font-black shadow-lg shadow-brand-primary/20">
             <Gamepad2 className="w-6 h-6 text-dark-950" />
           </div>
@@ -51,16 +51,16 @@ export default function LoginPage() {
             KRS <span className="text-brand-primary">CREATOR</span> HUB
           </span>
         </Link>
-        <h2 className="text-2xl font-bold tracking-tight text-white">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
           Acesse sua conta
         </h2>
-        <p className="mt-1.5 text-xs text-zinc-400">
+        <p className="mt-1 text-xs text-zinc-400">
           Gerencie suas campanhas, entregas e conquistas.
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <div className="rounded-2xl border border-white/10 bg-dark-900/90 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
+      <div className="mt-5 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md px-1 sm:px-4">
+        <div className="rounded-2xl border border-white/10 bg-dark-900/90 md:backdrop-blur-xl p-4 sm:p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
