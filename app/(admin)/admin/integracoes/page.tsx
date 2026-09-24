@@ -529,48 +529,67 @@ curl_close($ch);
       </div>
 
       {/* ========================================================================= */}
-      {/* 5. GATEWAYS PIX HOMOLOGADOS PARA PAGAR OS AFILIADOS                       */}
+      {/* 5. GATEWAYS PIX (VIZZION PAY & OMEGA PAY)                                 */}
       {/* ========================================================================= */}
       <div className="rounded-3xl border border-white/5 bg-dark-900 p-6 space-y-4">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-emerald-400" />
-          <span>Gateways Homologados para o Saque PIX dos Afiliados</span>
-        </h2>
-        <p className="text-xs text-zinc-400">
-          Quando o afiliado acumular comissões e apertar "SACAR PIX", o Creator Hub usa a chave PIX informada pelo criador para transferir o dinheiro imediatamente:
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-          <div className="rounded-2xl bg-black/40 border border-white/10 p-4">
-            <div className="font-bold text-white text-sm">SuitPay</div>
-            <div className="text-[11px] text-emerald-400 font-medium mt-0.5">Especial para iGaming & Apostas</div>
-            <p className="text-[11px] text-zinc-400 mt-2">
-              API rápida de cash-in e cash-out PIX instantâneo 24/7 sem burocracia.
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <span>Gateways de Saque PIX dos Afiliados (Vizzion Pay & Omega Pay)</span>
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Quando o afiliado acumular comissões e apertar "SACAR PIX", o KRS Creator Hub transfere automaticamente para a chave PIX do criador usando seu gateway configurado.
             </p>
           </div>
+          <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold self-start sm:self-auto">
+            API CASH-OUT PRONTA
+          </span>
+        </div>
 
-          <div className="rounded-2xl bg-black/40 border border-white/10 p-4">
-            <div className="font-bold text-white text-sm">Asaas / Woovi (OpenPix)</div>
-            <div className="text-[11px] text-cyan-400 font-medium mt-0.5">SaaS & Fintech</div>
-            <p className="text-[11px] text-zinc-400 mt-2">
-              Excelente para split de pagamentos e transferências PIX em lote para criadores.
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {/* Vizzion Pay */}
+          <div className="rounded-2xl bg-[#09150e] border-2 border-emerald-500/40 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span className="font-bold text-white text-base">Vizzion Pay</span>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-emerald-500 text-dark-950 font-bold text-[10px] uppercase font-pixel">
+                INTEGRADO
+              </span>
+            </div>
+            <p className="text-xs text-zinc-300">
+              Gateway especializado em iGaming e apostas esportivas com cash-out PIX em menos de 10 segundos.
             </p>
+            <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] font-mono">
+              <div className="text-zinc-400">Variáveis necessárias no .env / Vercel:</div>
+              <div className="text-emerald-400">VIZZIONPAY_API_KEY</div>
+              <div className="text-emerald-400">VIZZIONPAY_SECRET</div>
+              <div className="text-zinc-500">VIZZIONPAY_BASE_URL (opcional)</div>
+            </div>
           </div>
 
-          <div className="rounded-2xl bg-black/40 border border-white/10 p-4">
-            <div className="font-bold text-white text-sm">Efí (Antiga Gerencianet)</div>
-            <div className="text-[11px] text-amber-400 font-medium mt-0.5">Banco Homologado Bacen</div>
-            <p className="text-[11px] text-zinc-400 mt-2">
-              Certificado oficial do Banco Central para emissão e envio imediato de PIX.
+          {/* Omega Pay */}
+          <div className="rounded-2xl bg-[#0d1419] border-2 border-cyan-500/40 p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🛡️</span>
+                <span className="font-bold text-white text-base">Omega Pay</span>
+              </div>
+              <span className="px-2 py-0.5 rounded bg-cyan-400 text-dark-950 font-bold text-[10px] uppercase font-pixel">
+                INTEGRADO
+              </span>
+            </div>
+            <p className="text-xs text-zinc-300">
+              Gateway robusto com alta taxa de aprovação para transferências PIX em lote para criadores e afiliados.
             </p>
-          </div>
-
-          <div className="rounded-2xl bg-black/40 border border-white/10 p-4">
-            <div className="font-bold text-white text-sm">Mercado Pago / Stripe</div>
-            <div className="text-[11px] text-purple-400 font-medium mt-0.5">Internacional & Cartão</div>
-            <p className="text-[11px] text-zinc-400 mt-2">
-              Suporta depósitos de jogadores com cartão e transferências de comissão.
-            </p>
+            <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] font-mono">
+              <div className="text-zinc-400">Variáveis necessárias no .env / Vercel:</div>
+              <div className="text-cyan-400">OMEGAPAY_CLIENT_ID</div>
+              <div className="text-cyan-400">OMEGAPAY_CLIENT_SECRET</div>
+              <div className="text-zinc-500">OMEGAPAY_BASE_URL (opcional)</div>
+            </div>
           </div>
         </div>
       </div>

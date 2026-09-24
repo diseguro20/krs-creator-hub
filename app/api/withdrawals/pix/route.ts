@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendVizzionPixCashout } from "@/lib/payments/vizzionpay";
+import { sendOmegaPixCashout } from "@/lib/payments/omegapay";
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,8 +9,9 @@ export async function POST(req: NextRequest) {
       amount,
       pix_key,
       pix_key_type = "cpf", // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
-      affiliate_code,
+      affiliate_code = "afiliado",
       game_id = "all", // 'all' for consolidated balance or specific game
+      provider, // 'vizzionpay' | 'omegapay'
     } = body;
 
     const numAmount = parseFloat(amount);
@@ -34,24 +37,57 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate authenticated end-to-end PIX ID (Banco Central / Bacen standard)
-    const endToEndId = `E${Date.now()}KRS${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    const txId = `PIX-${Math.random().toString(36).substring(2, 9).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    // Determine active provider: explicit param > env var > default
+    const activeProvider =
+      provider ||
+      process.env.PIX_GATEWAY_PROVIDER ||
+      (process.env.VIZZIONPAY_API_KEY ? "vizzionpay" : process.env.OMEGAPAY_CLIENT_ID ? "omegapay" : "vizzionpay");
+
+    let result;
+
+    if (activeProvider === "omegapay") {
+      result = await sendOmegaPixCashout({
+        amount: numAmount,
+        pixKey: pix_key,
+        pixKeyType: pix_key_type,
+        affiliateCode: affiliate_code,
+      });
+    } else {
+      // Default to Vizzion Pay
+      result = await sendVizzionPixCashout({
+        amount: numAmount,
+        pixKey: pix_key,
+        pixKeyType: pix_key_type,
+        affiliateCode: affiliate_code,
+      });
+    }
+
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "PIX_GATEWAY_ERROR",
+          message: result.error || "O gateway PIX recusou a transação. Verifique sua chave PIX.",
+        },
+        { status: 422 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Saque unificado de R$ ${numAmount.toFixed(2)} processado com sucesso via PIX!`,
+      message: `Saque unificado de R$ ${numAmount.toFixed(2)} processado com sucesso via PIX (${result.provider})!`,
       data: {
-        txId,
-        endToEndId,
+        txId: result.txId,
+        endToEndId: result.endToEndId,
         amount: numAmount,
         pix_key,
         pix_key_type,
         game_origin: game_id === "all" ? "Saldo Consolidado (Todos os 4 Jogos)" : game_id,
         affiliate_code,
-        status: "COMPLETED",
-        paid_at: new Date().toISOString(),
-        gateway: "KRS Instant PIX Gateway (SuitPay / Asaas / Woovi)",
+        status: result.status,
+        provider: result.provider,
+        mode: result.mode,
+        paid_at: result.paidAt,
       },
     });
   } catch (error: any) {
