@@ -109,28 +109,70 @@ export default function RankingPage() {
   const top2 = filteredAffiliates[1];
   const top3 = filteredAffiliates[2];
 
-  // XP Demo Leaderboard
-  const DEMO_XP_LEADERBOARD = [
+  // Base XP Leaderboard sincronizado com os influencers reais da aba de Afiliados
+  const isUserAdmin = creatorUser.role === "ADMIN" || creatorUser.username === "krs_admin";
+  const currentUserXp = creatorUser.current_xp || 0;
+
+  const BASE_XP_LEADERBOARD = [
+    {
+      rank: 1,
+      name: "Felipe Santos (Nobru Games)",
+      username: "felipe_nobru",
+      avatar: "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=300&auto=format&fit=crop&q=80",
+      level: 5,
+      levelName: "Creator Master",
+      xp: 4850,
+      streak: 9,
+      campaigns: 12,
+      approvalRate: "99%",
+      isCurrentUser: false,
+    },
     {
       rank: 2,
-      name: "Beatriz Lima",
-      username: "biagames",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      name: "Camila Silva (Camila Mih)",
+      username: "camilagames_ofc",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=80",
       level: 4,
       levelName: "Creator Pro",
-      xp: 1920,
-      streak: 4,
-      campaigns: 5,
-      approvalRate: "96%",
+      xp: 3420,
+      streak: 7,
+      campaigns: 9,
+      approvalRate: "98%",
       isCurrentUser: false,
     },
     {
       rank: 3,
-      name: "Gabriel Santos",
-      username: "gabriel_play",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
+      name: "Rodrigo Almeida (Dentinho)",
+      username: "rodrigo_playgames",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80",
       level: 4,
       levelName: "Creator Pro",
+      xp: 2890,
+      streak: 6,
+      campaigns: 8,
+      approvalRate: "96%",
+      isCurrentUser: false,
+    },
+    {
+      rank: 4,
+      name: "Beatriz Lima (Bia Gamer)",
+      username: "biagames",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
+      level: 4,
+      levelName: "Creator Pro",
+      xp: 2150,
+      streak: 4,
+      campaigns: 6,
+      approvalRate: "96%",
+      isCurrentUser: false,
+    },
+    {
+      rank: 5,
+      name: "Gabriel Santos",
+      username: "gabriel_play",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+      level: 3,
+      levelName: "Creator Plus",
       xp: 1680,
       streak: 3,
       campaigns: 4,
@@ -138,7 +180,7 @@ export default function RankingPage() {
       isCurrentUser: false,
     },
     {
-      rank: 4,
+      rank: 6,
       name: "Larissa Mendes",
       username: "larissakrs",
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
@@ -151,12 +193,12 @@ export default function RankingPage() {
       isCurrentUser: false,
     },
     {
-      rank: 5,
+      rank: 7,
       name: "Matheus Rocha",
       username: "rocha_games",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
-      level: 3,
-      levelName: "Creator Plus",
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&auto=format&fit=crop&q=80",
+      level: 2,
+      levelName: "Creator Starter",
       xp: 980,
       streak: 2,
       campaigns: 3,
@@ -165,22 +207,31 @@ export default function RankingPage() {
     },
   ];
 
-  const XP_LEADERBOARD_USERS = [
-    {
-      rank: 1,
-      name: creatorUser.name || "Seu Perfil (Creator)",
-      username: creatorUser.username || "creator",
-      avatar: creatorUser.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-      level: creatorUser.current_level || 1,
-      levelName: "Starter",
-      xp: creatorUser.current_xp || 0,
-      streak: creatorUser.streak_weeks || 0,
-      campaigns: creatorUser.completed_campaigns_count || 0,
-      approvalRate: "100%",
-      isCurrentUser: true,
-    },
-    ...DEMO_XP_LEADERBOARD,
-  ];
+  const XP_LEADERBOARD_USERS = useMemo(() => {
+    let list = [...BASE_XP_LEADERBOARD];
+
+    // Se o usuário logado for um creator regular (não-admin), posiciona ele de acordo com seu XP real
+    if (!isUserAdmin) {
+      list.push({
+        rank: 999,
+        name: creatorUser.name || "Seu Perfil (Creator)",
+        username: creatorUser.username || "creator",
+        avatar: creatorUser.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+        level: creatorUser.current_level || 1,
+        levelName: (creatorUser.current_level || 1) >= 4 ? "Creator Pro" : "Starter",
+        xp: currentUserXp,
+        streak: creatorUser.streak_weeks || 0,
+        campaigns: creatorUser.completed_campaigns_count || 0,
+        approvalRate: "100%",
+        isCurrentUser: true,
+      });
+
+      list.sort((a, b) => b.xp - a.xp);
+      return list.map((item, idx) => ({ ...item, rank: idx + 1 }));
+    }
+
+    return list;
+  }, [creatorUser, currentUserXp, isUserAdmin]);
 
   // Helper to format values by timeframe
   const getInfluencerEarnings = (inf: AffiliateLeaderboardInfluencer) => {
@@ -800,7 +851,12 @@ export default function RankingPage() {
                 <div className="h-16 w-16 rounded-2xl overflow-hidden bg-dark-850 border-2 border-zinc-400 mb-3 mx-auto">
                   <img src={XP_LEADERBOARD_USERS[1].avatar} alt="" className="h-full w-full object-cover" />
                 </div>
-                <h3 className="text-sm font-bold text-white">{XP_LEADERBOARD_USERS[1].name}</h3>
+                <h3 className="text-sm font-bold text-white flex items-center justify-center gap-1.5">
+                  <span>{XP_LEADERBOARD_USERS[1].name}</span>
+                  {XP_LEADERBOARD_USERS[1].isCurrentUser && (
+                    <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-pixel">VOCÊ</span>
+                  )}
+                </h3>
                 <div className="text-[11px] text-zinc-400">@{XP_LEADERBOARD_USERS[1].username}</div>
               </div>
               <div className="mt-4 pt-3 border-t border-white/5 w-full flex justify-between text-xs">
@@ -823,7 +879,9 @@ export default function RankingPage() {
                 </div>
                 <h3 className="text-base font-bold text-white flex items-center justify-center gap-1.5">
                   <span>{XP_LEADERBOARD_USERS[0].name}</span>
-                  <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-pixel">VOCÊ</span>
+                  {XP_LEADERBOARD_USERS[0].isCurrentUser && (
+                    <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-pixel">VOCÊ</span>
+                  )}
                 </h3>
                 <div className="text-xs text-emerald-400 font-semibold font-mono">@{XP_LEADERBOARD_USERS[0].username}</div>
               </div>
@@ -842,7 +900,12 @@ export default function RankingPage() {
                 <div className="h-16 w-16 rounded-2xl overflow-hidden bg-dark-850 border-2 border-amber-700/60 mb-3 mx-auto">
                   <img src={XP_LEADERBOARD_USERS[2].avatar} alt="" className="h-full w-full object-cover" />
                 </div>
-                <h3 className="text-sm font-bold text-white">{XP_LEADERBOARD_USERS[2].name}</h3>
+                <h3 className="text-sm font-bold text-white flex items-center justify-center gap-1.5">
+                  <span>{XP_LEADERBOARD_USERS[2].name}</span>
+                  {XP_LEADERBOARD_USERS[2].isCurrentUser && (
+                    <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-pixel">VOCÊ</span>
+                  )}
+                </h3>
                 <div className="text-[11px] text-zinc-400">@{XP_LEADERBOARD_USERS[2].username}</div>
               </div>
               <div className="mt-4 pt-3 border-t border-white/5 w-full flex justify-between text-xs">
@@ -851,6 +914,61 @@ export default function RankingPage() {
               </div>
             </div>
           </div>
+
+          {/* User Status in XP Leaderboard */}
+          {isUserAdmin ? (
+            <div className="rounded-3xl border border-white/10 bg-dark-900/90 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <span>Modo Administrador ({creatorUser.name || "KRS Operations Master"})</span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-pixel text-[9px]">ADMIN</span>
+                  </div>
+                  <div className="text-[11px] text-zinc-400 mt-0.5">
+                    Contas administrativas atuam na moderação e gestão da plataforma, sem concorrer no ranking com os criadores parceiros.
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/admin"
+                className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold transition whitespace-nowrap self-start sm:self-auto"
+              >
+                Abrir Painel Admin →
+              </Link>
+            </div>
+          ) : (
+            <div className="rounded-3xl border-2 border-emerald-500/40 bg-gradient-to-r from-[#0d1f15] via-[#09150e] to-dark-900 p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center font-pixel text-emerald-400 text-lg font-black flex-shrink-0">
+                  #{XP_LEADERBOARD_USERS.find((u) => u.isCurrentUser)?.rank || XP_LEADERBOARD_USERS.length + 1}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-sm sm:text-base">
+                      {creatorUser.name || "Seu Perfil"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-500 text-dark-950 font-pixel text-[9px] font-black uppercase">
+                      VOCÊ
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-0.5">
+                    @{creatorUser.username || "creator"} • Pontuação acumulada:{" "}
+                    <strong className="text-emerald-400">{formatXP(currentUserXp)}</strong>
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/campanhas"
+                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-dark-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-500/20"
+              >
+                <span>Fazer Missões & Ganhar XP</span>
+                <ArrowRightIcon className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
 
           {/* Complete Table for XP */}
           <div className="rounded-3xl border border-white/5 bg-dark-900 overflow-hidden shadow-xl">
