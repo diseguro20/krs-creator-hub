@@ -18,7 +18,7 @@ import { CreatorProfile } from "@/types";
 
 export default function CampaignsListPage() {
   const { campaigns, creatorCampaigns, currentUser } = useKrsStore();
-  const creator = currentUser as CreatorProfile;
+  const creator = currentUser as CreatorProfile | null;
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredCampaigns = campaigns.filter((camp) => {
@@ -61,7 +61,7 @@ export default function CampaignsListPage() {
         {filteredCampaigns.map((camp) => {
           const userProgress = creatorCampaigns[camp.id];
           const isJoined = !!userProgress;
-          const isLocked = camp.min_level > (creator.current_level || 1);
+          const isLocked = camp.min_level > (creator?.current_level || 1);
           const completedCount = userProgress?.completedMissions?.length || 0;
           const totalMissions = camp.missions.length;
           const percent = Math.min(100, Math.round((completedCount / totalMissions) * 100));

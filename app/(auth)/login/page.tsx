@@ -8,7 +8,7 @@ import { useKrsStore } from "@/lib/store/useKrsStore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { switchUserRole } = useKrsStore();
+  const { loginUser } = useKrsStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,27 +19,22 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    // If matches admin or demo, route appropriately
     setTimeout(() => {
       setLoading(false);
-      if (email.toLowerCase().includes("admin")) {
-        switchUserRole("ADMIN");
+      const isAdm = email.toLowerCase().includes("admin");
+      const isCapt = email.toLowerCase().includes("captador");
+      const role = isAdm ? "ADMIN" : isCapt ? "CAPTADOR" : "INFLUENCER";
+
+      loginUser(email, role);
+
+      if (isAdm) {
         router.push("/admin");
-      } else if (email.toLowerCase().includes("captador")) {
-        switchUserRole("CAPTADOR");
+      } else if (isCapt) {
         router.push("/captador");
       } else {
-        switchUserRole("INFLUENCER");
-        router.push("/dashboard");
+        router.push("/afiliados");
       }
-    }, 600);
-  };
-
-  const handleQuickLogin = (role: "ADMIN" | "INFLUENCER" | "CAPTADOR") => {
-    switchUserRole(role);
-    if (role === "ADMIN") router.push("/admin");
-    else if (role === "CAPTADOR") router.push("/captador");
-    else router.push("/dashboard");
+    }, 400);
   };
 
   return (
@@ -130,47 +125,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Access Buttons */}
-          <div className="mt-6 pt-6 border-t border-white/5">
-            <div className="text-center mb-3">
-              <span className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400">
-                Acesso Rápido de Avaliação:
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("INFLUENCER")}
-                className="p-2.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-brand-primary/30 text-center transition group"
-              >
-                <Sparkles className="w-4 h-4 text-brand-primary mx-auto mb-1 group-hover:scale-110 transition" />
-                <div className="text-[11px] font-bold text-white">Influencer</div>
-                <div className="text-[9px] text-zinc-400">Creator Elite</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("CAPTADOR")}
-                className="p-2.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-brand-neon/30 text-center transition group"
-              >
-                <Users className="w-4 h-4 text-brand-neon mx-auto mb-1 group-hover:scale-110 transition" />
-                <div className="text-[11px] font-bold text-white">Captador</div>
-                <div className="text-[9px] text-zinc-400">Marcos (Ref)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("ADMIN")}
-                className="p-2.5 rounded-xl bg-dark-850 hover:bg-dark-800 border border-amber-500/30 text-center transition group"
-              >
-                <ShieldCheck className="w-4 h-4 text-amber-400 mx-auto mb-1 group-hover:scale-110 transition" />
-                <div className="text-[11px] font-bold text-white">Admin</div>
-                <div className="text-[9px] text-zinc-400">KRS Master</div>
-              </button>
-            </div>
-          </div>
 
           <div className="mt-6 text-center text-xs text-zinc-400">
             Ainda não tem conta?{" "}

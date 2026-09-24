@@ -49,13 +49,13 @@ export default function OnboardingPage() {
   const [completed, setCompleted] = useState(false);
 
   // Form State
-  const [name, setName] = useState(currentUser.name || "Lucas Alencar");
+  const [name, setName] = useState(currentUser?.name || "Lucas Alencar");
   const [whatsapp, setWhatsapp] = useState("+55 (11) 98765-4321");
   const [city, setCity] = useState("São Paulo");
   const [state, setState] = useState("SP");
-  const [avatar, setAvatar] = useState(currentUser.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80");
+  const [avatar, setAvatar] = useState(currentUser?.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80");
 
-  const [partnerType, setPartnerType] = useState<"INFLUENCER" | "CAPTADOR">(currentUser.role === "CAPTADOR" ? "CAPTADOR" : "INFLUENCER");
+  const [partnerType, setPartnerType] = useState<"INFLUENCER" | "CAPTADOR">(currentUser?.role === "CAPTADOR" ? "CAPTADOR" : "INFLUENCER");
   const [selectedSocials, setSelectedSocials] = useState<string[]>(["Instagram", "TikTok"]);
   
   // Social metrics

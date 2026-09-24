@@ -42,7 +42,18 @@ import {
 
 interface KrsStoreContextType {
   // Current user & Auth
-  currentUser: UserProfile | CreatorProfile | CaptadorProfile;
+  currentUser: UserProfile | CreatorProfile | CaptadorProfile | null;
+  isAuthenticated: boolean;
+  isAuthLoaded: boolean;
+  loginUser: (email: string, role?: "INFLUENCER" | "CAPTADOR" | "ADMIN") => boolean;
+  registerUser: (userData: {
+    name: string;
+    email: string;
+    password?: string;
+    role: "INFLUENCER" | "CAPTADOR";
+    affiliate_code?: string;
+  }) => void;
+  logout: () => void;
   switchUserRole: (role: "ADMIN" | "INFLUENCER" | "CAPTADOR") => void;
   updateCurrentUser: (data: Partial<UserProfile | CreatorProfile | CaptadorProfile>) => void;
   
@@ -140,8 +151,9 @@ const KrsStoreContext = createContext<KrsStoreContextType | null>(null);
 const STORAGE_KEY = "krs_creator_hub_v4_prod";
 
 export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
-  // Initialize state
-  const [currentUser, setCurrentUser] = useState<UserProfile | CreatorProfile | CaptadorProfile>(DEMO_CREATOR);
+  // Initialize state (null by default so new visitors are not automatically logged in)
+  const [currentUser, setCurrentUser] = useState<UserProfile | CreatorProfile | CaptadorProfile | null>(null);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const [games, setGames] = useState<Game[]>(SEED_GAMES);
   const [campaigns, setCampaigns] = useState<Campaign[]>(SEED_CAMPAIGNS);
   const [affiliateStats, setAffiliateStats] = useState<GameAffiliateStats[]>(SEED_AFFILIATE_STATS);
@@ -174,7 +186,11 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.currentUser) setCurrentUser(parsed.currentUser);
+        if (parsed.currentUser && parsed.currentUser.email) {
+          setCurrentUser(parsed.currentUser);
+        } else {
+          setCurrentUser(null);
+        }
         if (parsed.games) setGames(parsed.games);
         if (parsed.campaigns) setCampaigns(parsed.campaigns);
         if (parsed.creatorCampaigns) setCreatorCampaigns(parsed.creatorCampaigns);
@@ -189,9 +205,14 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         if (parsed.settings) setSettings(parsed.settings);
         if (parsed.affiliateStats) setAffiliateStats(parsed.affiliateStats);
         if (parsed.affiliateConversions) setAffiliateConversions(parsed.affiliateConversions);
+      } else {
+        setCurrentUser(null);
       }
     } catch (e) {
       console.warn("Could not load stored data:", e);
+      setCurrentUser(null);
+    } finally {
+      setIsAuthLoaded(true);
     }
   }, []);
 
@@ -207,6 +228,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logAction = (action: string, details: string, targetId?: string) => {
+    if (!currentUser) return;
     const newLog: ActivityLog = {
       id: `log-${Date.now()}`,
       user_id: currentUser.id,
@@ -224,6 +246,126 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const registerUser = (userData: {
+    name: string;
+    email: string;
+    password?: string;
+    role: "INFLUENCER" | "CAPTADOR";
+    affiliate_code?: string;
+  }) => {
+    const rawTag = userData.affiliate_code || userData.name;
+    const cleanCode = rawTag.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") || `creator_${Date.now().toString().slice(-4)}`;
+
+    const newUser: CreatorProfile | CaptadorProfile = userData.role === "CAPTADOR" ? {
+      id: `usr_${Date.now()}`,
+      name: userData.name,
+      email: userData.email,
+      username: cleanCode,
+      avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80`,
+      phone: "",
+      city: "São Paulo",
+      state: "SP",
+      role: "CAPTADOR",
+      onboarding_completed: true,
+      referral_code: cleanCode,
+      current_xp: 100,
+      current_level: 1,
+      streak_weeks: 1,
+      total_referred: 0,
+      active_creators: 0,
+      campaigns_completed_by_referred: 0,
+      wallet_balance: 0.00,
+      is_affiliate: true,
+      affiliate_code: cleanCode,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    } : {
+      id: `usr_${Date.now()}`,
+      name: userData.name,
+      email: userData.email,
+      username: cleanCode,
+      avatar_url: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80`,
+      phone: "",
+      city: "São Paulo",
+      state: "SP",
+      role: "INFLUENCER",
+      onboarding_completed: true,
+      niches: ["Gaming", "Jogos por Habilidade"],
+      social_accounts: [],
+      campaign_preferences: ["Jogos de Habilidade", "Puzzle", "Cassino"],
+      current_xp: 100,
+      current_level: 1,
+      streak_weeks: 1,
+      completed_campaigns_count: 0,
+      approved_submissions_count: 0,
+      wallet_balance: 0.00,
+      is_affiliate: true,
+      affiliate_code: cleanCode,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    setCurrentUser(newUser);
+
+    const updatedStats = affiliateStats.map((stat) => {
+      let base = "";
+      if (stat.game_slug === "fruit-cash") base = "https://fruitcash-fun.vercel.app/";
+      else if (stat.game_slug === "krs-777") base = "https://krs777.online/";
+      else if (stat.game_slug === "blockerino") base = "https://blockerino-play.vercel.app/";
+      else if (stat.game_slug === "bubbles-cash") base = "https://bubblecash-platform.vercel.app/";
+      else base = stat.referral_url.split("?")[0];
+
+      const url = `${base}?${stat.referral_param || "ref"}=${cleanCode}`;
+      return {
+        ...stat,
+        referral_url: url,
+        available_balance: 0,
+        total_earned: 0,
+        total_clicks: 0,
+        total_signups: 0,
+        total_deposits: 0,
+      };
+    });
+
+    setAffiliateStats(updatedStats);
+    setAffiliateConversions([]);
+    persist({ currentUser: newUser, affiliateStats: updatedStats, affiliateConversions: [] });
+  };
+
+  const loginUser = (email: string, role: "INFLUENCER" | "CAPTADOR" | "ADMIN" = "INFLUENCER") => {
+    let userToSet: UserProfile | CreatorProfile | CaptadorProfile;
+    if (role === "ADMIN" || email.toLowerCase().includes("admin")) {
+      userToSet = DEMO_ADMIN;
+    } else if (role === "CAPTADOR" || email.toLowerCase().includes("captador")) {
+      userToSet = { ...DEMO_CAPTADOR, email };
+    } else {
+      userToSet = {
+        ...DEMO_CREATOR,
+        email,
+        name: email.split("@")[0],
+        username: email.split("@")[0].toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+        affiliate_code: email.split("@")[0].toLowerCase().replace(/[^a-z0-9_-]/g, ""),
+      };
+    }
+    setCurrentUser(userToSet);
+    persist({ currentUser: userToSet });
+    return true;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    try {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current) {
+        const prev = JSON.parse(current);
+        delete prev.currentUser;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(prev));
+      }
+    } catch (e) {
+      console.warn("Error on logout:", e);
+    }
+  };
+
   const switchUserRole = (role: "ADMIN" | "INFLUENCER" | "CAPTADOR") => {
     let newUser: UserProfile | CreatorProfile | CaptadorProfile = DEMO_CREATOR;
     if (role === "ADMIN") newUser = DEMO_ADMIN;
@@ -236,6 +378,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
 
   const updateCurrentUser = (data: Partial<UserProfile | CreatorProfile | CaptadorProfile>) => {
     setCurrentUser((prev) => {
+      if (!prev) return null;
       const updated = { ...prev, ...data } as any;
       persist({ currentUser: updated });
       return updated;
@@ -326,7 +469,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const awardXP = (amount: number, reason: string) => {
-    if (currentUser.role !== "INFLUENCER" && currentUser.role !== "CAPTADOR") return;
+    if (!currentUser || (currentUser.role !== "INFLUENCER" && currentUser.role !== "CAPTADOR")) return;
 
     const prevXP = (currentUser as CreatorProfile).current_xp || 0;
     const newXP = prevXP + amount;
@@ -556,7 +699,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   const addReferral = (code: string, newUserName: string, newUserEmail: string) => {
     const newRef: ReferralRecord = {
       id: `ref-${Date.now()}`,
-      captador_id: currentUser.id,
+      captador_id: currentUser ? currentUser.id : "system",
       referred_user_id: `user-${Date.now()}`,
       referred_name: newUserName,
       referred_username: newUserName.toLowerCase().replace(/\s+/g, "_"),
@@ -644,10 +787,11 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const totalAffiliateBalance = affiliateStats.reduce((acc, curr) => acc + (curr.available_balance || 0), 0);
-  const walletBalance = currentUser.wallet_balance ?? totalAffiliateBalance;
-  const isAffiliateUser = currentUser.role === "INFLUENCER" || (currentUser as any).is_affiliate === true;
+  const walletBalance = currentUser ? (currentUser.wallet_balance ?? totalAffiliateBalance) : 0;
+  const isAffiliateUser = currentUser ? (currentUser.role === "INFLUENCER" || (currentUser as any).is_affiliate === true) : false;
 
   const depositWallet = (amount: number) => {
+    if (!currentUser) return;
     const current = currentUser.wallet_balance ?? totalAffiliateBalance;
     const newBal = current + amount;
     const updated = { ...currentUser, wallet_balance: newBal };
@@ -657,6 +801,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   const withdrawWallet = (amount: number, pixKey: string) => {
+    if (!currentUser) return;
     const current = currentUser.wallet_balance ?? totalAffiliateBalance;
     if (amount > current) return;
     const newBal = current - amount;
@@ -683,10 +828,14 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
       });
       setAffiliateStats(updatedStats);
 
-      const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
-      const updatedUser = { ...currentUser, wallet_balance: newBal };
-      setCurrentUser(updatedUser);
-      persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+      if (currentUser) {
+        const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
+        const updatedUser = { ...currentUser, wallet_balance: newBal };
+        setCurrentUser(updatedUser);
+        persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+      } else {
+        persist({ affiliateStats: updatedStats });
+      }
 
       logAction(
         "affiliate_pix_withdrawal",
@@ -696,7 +845,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
 
       const newNotif: AppNotification = {
         id: `notif-pix-${Date.now()}`,
-        user_id: currentUser.id,
+        user_id: currentUser ? currentUser.id : "guest",
         type: "admin_announcement",
         title: "PIX Transferido com Sucesso! 💸",
         message: `R$ ${amount.toFixed(2)} transferidos via PIX para ${pixKey}. Origem: ${targetGame.game_name}. TxID: ${txId}`,
@@ -725,10 +874,14 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
       });
       setAffiliateStats(updatedStats);
 
-      const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
-      const updatedUser = { ...currentUser, wallet_balance: newBal };
-      setCurrentUser(updatedUser);
-      persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+      if (currentUser) {
+        const newBal = Math.max(0, (currentUser.wallet_balance ?? totalAffiliateBalance) - amount);
+        const updatedUser = { ...currentUser, wallet_balance: newBal };
+        setCurrentUser(updatedUser);
+        persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+      } else {
+        persist({ affiliateStats: updatedStats });
+      }
 
       logAction(
         "affiliate_pix_withdrawal_total",
@@ -737,7 +890,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
 
       const newNotif: AppNotification = {
         id: `notif-pix-${Date.now()}`,
-        user_id: currentUser.id,
+        user_id: currentUser ? currentUser.id : "guest",
         type: "admin_announcement",
         title: "Saque Consolidado PIX Realizado! 💸",
         message: `R$ ${amount.toFixed(2)} transferidos para a chave PIX ${pixKey}. TxID: ${txId}`,
@@ -758,9 +911,6 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     const cleanCode = newCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
     if (!cleanCode) return;
 
-    const updatedUser = { ...currentUser, affiliate_code: cleanCode };
-    setCurrentUser(updatedUser);
-
     const updatedStats = affiliateStats.map((stat) => {
       let base = "";
       if (stat.game_slug === "fruit-cash") base = "https://fruitcash-fun.vercel.app/";
@@ -773,7 +923,15 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
       return { ...stat, referral_url: url };
     });
     setAffiliateStats(updatedStats);
-    persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+
+    if (currentUser) {
+      const updatedUser = { ...currentUser, affiliate_code: cleanCode };
+      setCurrentUser(updatedUser);
+      persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+    } else {
+      persist({ affiliateStats: updatedStats });
+    }
+
     logAction("affiliate_code_updated", `Código de afiliado configurado para '${cleanCode}'`);
   };
 
@@ -789,6 +947,11 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     <KrsStoreContext.Provider
       value={{
         currentUser,
+        isAuthenticated: !!currentUser && !!currentUser.id,
+        isAuthLoaded,
+        loginUser,
+        registerUser,
+        logout,
         switchUserRole,
         updateCurrentUser,
         games,

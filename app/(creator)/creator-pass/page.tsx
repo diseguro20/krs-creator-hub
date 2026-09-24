@@ -20,9 +20,9 @@ import { formatXP } from "@/lib/utils";
 
 export default function CreatorPassPage() {
   const { creatorPass, currentUser } = useKrsStore();
-  const creator = currentUser as CreatorProfile;
+  const creator = currentUser as CreatorProfile | null;
 
-  const userXP = creator.current_xp || 0;
+  const userXP = creator?.current_xp || 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">

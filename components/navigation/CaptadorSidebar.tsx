@@ -19,8 +19,8 @@ import { formatXP } from "@/lib/utils";
 
 export function CaptadorSidebar() {
   const pathname = usePathname();
-  const { currentUser } = useKrsStore();
-  const captador = currentUser as CaptadorProfile;
+  const { currentUser, logout } = useKrsStore();
+  const captador = (currentUser as CaptadorProfile) || { name: "Captador", role: "CAPTADOR" };
 
   return (
     <aside className="hidden lg:flex w-64 flex-col justify-between border-r border-white/5 bg-dark-950 p-4 h-screen sticky top-0">

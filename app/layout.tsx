@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { KrsStoreProvider } from "@/lib/store/useKrsStore";
-import { DemoUserSwitcher } from "@/components/navigation/DemoUserSwitcher";
 import { LevelUpCelebrationModal } from "@/components/gamification/LevelUpCelebrationModal";
 import { InAppGameModal } from "@/components/gaming/InAppGameModal";
 import { WalletModal } from "@/components/gaming/WalletModal";
@@ -22,7 +21,6 @@ export default function RootLayout({
       <body className="bg-dark-950 text-zinc-100 min-h-screen antialiased selection:bg-brand-primary selection:text-dark-950">
         <KrsStoreProvider>
           {children}
-          <DemoUserSwitcher />
           <LevelUpCelebrationModal />
           <InAppGameModal />
           <WalletModal />

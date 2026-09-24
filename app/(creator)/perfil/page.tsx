@@ -21,7 +21,17 @@ import { formatXP } from "@/lib/utils";
 
 export default function CreatorProfilePage() {
   const { currentUser, updateCurrentUser, userBadges, badges } = useKrsStore();
-  const creator = currentUser as CreatorProfile;
+  const creator = (currentUser as CreatorProfile) || {
+    name: "Creator",
+    username: "creator",
+    phone: "",
+    city: "São Paulo",
+    state: "SP",
+    current_level: 1,
+    current_xp: 0,
+    streak_weeks: 1,
+    completed_campaigns_count: 0,
+  };
 
   const [name, setName] = useState(creator.name);
   const [phone, setPhone] = useState(creator.phone || "+55 (11) 98765-4321");

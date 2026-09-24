@@ -46,9 +46,15 @@ export default function AffiliateHubPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [selectedGameFilter, setSelectedGameFilter] = useState<string>("all");
   const [customTag, setCustomTag] = useState<string>(
-    (currentUser as any)?.affiliate_code || currentUser.username || "afiliado"
+    (currentUser as any)?.affiliate_code || currentUser?.username || "afiliado"
   );
   const [tagSuccess, setTagSuccess] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      setCustomTag((currentUser as any)?.affiliate_code || currentUser.username || "afiliado");
+    }
+  }, [currentUser]);
 
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawGameId, setWithdrawGameId] = useState<string>("all");

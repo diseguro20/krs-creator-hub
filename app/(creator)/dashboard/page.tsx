@@ -33,7 +33,14 @@ export default function CreatorDashboardPage() {
     totalAffiliateBalance,
     affiliateStats,
   } = useKrsStore();
-  const creator = currentUser as CreatorProfile;
+  const creator = (currentUser as CreatorProfile) || {
+    name: "Creator",
+    username: "creator",
+    current_level: 1,
+    current_xp: 0,
+    streak_weeks: 0,
+    completed_campaigns_count: 0,
+  };
 
   // Level progress
   const currentLevelInfo = levels.find((l) => l.level === (creator.current_level || 1)) || levels[0];

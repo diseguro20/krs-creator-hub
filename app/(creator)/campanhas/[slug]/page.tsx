@@ -40,7 +40,12 @@ export default function CampaignJourneyPage({
     scripts,
   } = useKrsStore();
 
-  const creator = currentUser as CreatorProfile;
+  const creator = (currentUser as CreatorProfile) || {
+    id: "guest",
+    name: "Creator",
+    username: "creator",
+    avatar_url: "",
+  };
   const campaign = campaigns.find((c) => c.slug === resolvedParams.slug);
 
   if (!campaign) {

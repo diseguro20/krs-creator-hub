@@ -22,7 +22,17 @@ import { formatXP } from "@/lib/utils";
 
 export default function CaptadorDashboardPage() {
   const { currentUser, referrals, addReferral } = useKrsStore();
-  const captador = currentUser as CaptadorProfile;
+  const captador = (currentUser as CaptadorProfile) || {
+    referral_code: "PARCEIRO",
+    current_xp: 0,
+    current_level: 1,
+    streak_weeks: 1,
+    total_referred: 0,
+    active_creators: 0,
+    campaigns_completed_by_referred: 0,
+    name: "Captador",
+    username: "captador",
+  };
 
   const refCode = captador.referral_code || "MARCOS10";
   const refUrl = typeof window !== "undefined"

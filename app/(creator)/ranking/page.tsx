@@ -34,7 +34,15 @@ import {
 
 export default function RankingPage() {
   const { currentUser, totalAffiliateBalance, games, openGamePlayer } = useKrsStore();
-  const creatorUser = currentUser as any;
+  const creatorUser = (currentUser as any) || {
+    name: "Creator",
+    username: "creator",
+    role: "INFLUENCER",
+    current_xp: 0,
+    current_level: 1,
+    streak_weeks: 0,
+    completed_campaigns_count: 0,
+  };
 
   // Active Tab: 'afiliados' (default) | 'xp'
   const [activeTab, setActiveTab] = useState<"afiliados" | "xp">("afiliados");
@@ -110,8 +118,8 @@ export default function RankingPage() {
   const top3 = filteredAffiliates[2];
 
   // Base XP Leaderboard sincronizado com os influencers reais da aba de Afiliados
-  const isUserAdmin = creatorUser.role === "ADMIN" || creatorUser.username === "krs_admin";
-  const currentUserXp = creatorUser.current_xp || 0;
+  const isUserAdmin = creatorUser?.role === "ADMIN" || creatorUser?.username === "krs_admin";
+  const currentUserXp = creatorUser?.current_xp || 0;
 
   const BASE_XP_LEADERBOARD = [
     {
@@ -211,7 +219,7 @@ export default function RankingPage() {
     let list = [...BASE_XP_LEADERBOARD];
 
     // Se o usuário logado for um creator regular (não-admin), posiciona ele de acordo com seu XP real
-    if (!isUserAdmin) {
+    if (creatorUser && !isUserAdmin) {
       list.push({
         rank: 999,
         name: creatorUser.name || "Seu Perfil (Creator)",

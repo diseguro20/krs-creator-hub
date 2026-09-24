@@ -21,7 +21,12 @@ export function CreatorHeader() {
   const { currentUser, notifications, markNotificationAsRead, markAllNotificationsAsRead, walletBalance, setWalletModalOpen } = useKrsStore();
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const creator = currentUser as CreatorProfile;
+  const creator = (currentUser as CreatorProfile) || {
+    name: "Criador",
+    current_level: 1,
+    streak_weeks: 1,
+    current_xp: 0,
+  };
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (

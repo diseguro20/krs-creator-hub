@@ -39,8 +39,12 @@ const NAV_ITEMS = [
 
 export function CreatorSidebar() {
   const pathname = usePathname();
-  const { currentUser, levels } = useKrsStore();
-  const creator = currentUser as CreatorProfile;
+  const { currentUser, levels, logout } = useKrsStore();
+  const creator = (currentUser as CreatorProfile) || {
+    name: "Criador",
+    current_level: 1,
+    current_xp: 0,
+  };
 
   const currentLevelInfo = levels.find((l) => l.level === (creator.current_level || 1)) || levels[0];
   const nextLevelInfo = levels.find((l) => l.level === (creator.current_level || 1) + 1);
@@ -142,13 +146,16 @@ export function CreatorSidebar() {
           <HelpCircle className="w-4 h-4 text-zinc-400" />
           <span>Central de Ajuda & FAQ</span>
         </Link>
-        <Link
-          href="/login"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-red-400 hover:bg-dark-900 transition"
+        <button
+          onClick={() => {
+            logout();
+            window.location.href = "/login";
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-red-400 hover:bg-dark-900 transition text-left cursor-pointer"
         >
           <LogOut className="w-4 h-4 text-zinc-500" />
           <span>Sair da Conta</span>
-        </Link>
+        </button>
       </div>
     </aside>
   );

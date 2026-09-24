@@ -9,12 +9,13 @@ import { useKrsStore } from "@/lib/store/useKrsStore";
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { switchUserRole, updateCurrentUser } = useKrsStore();
+  const { registerUser } = useKrsStore();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"INFLUENCER" | "CAPTADOR">("INFLUENCER");
+  const [affiliateTag, setAffiliateTag] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(true);
 
@@ -29,17 +30,17 @@ function RegisterForm() {
     e.preventDefault();
     if (!termsAccepted) return;
 
-    // Switch and set user
-    switchUserRole(role);
-    updateCurrentUser({
+    // Registra conta real do usuário com sua tag exclusiva
+    registerUser({
       name,
       email,
-      username: name.toLowerCase().replace(/\s+/g, "_"),
-      onboarding_completed: false,
+      password,
+      role,
+      affiliate_code: affiliateTag || referralCode || name.toLowerCase().replace(/\s+/g, ""),
     });
 
-    // Go to interactive multi-step onboarding
-    router.push("/onboarding");
+    // Direciona imediatamente para o painel de afiliados
+    router.push("/afiliados");
   };
 
   return (
@@ -152,8 +153,26 @@ function RegisterForm() {
             </div>
 
             <div>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1.5 flex items-center justify-between">
+                <span>Sua Tag de Afiliado (Link dos Jogos)</span>
+                <span className="text-[10px] text-brand-primary font-mono font-bold">SEU LINK EXCLUSIVO</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={affiliateTag}
+                onChange={(e) => setAffiliateTag(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                placeholder="Ex: seu_canal ou seu_nome"
+                className="w-full px-4 py-2.5 rounded-xl bg-dark-850 border border-white/10 text-sm text-emerald-400 font-mono placeholder-zinc-500 focus:outline-none focus:border-brand-primary transition lowercase"
+              />
+              <p className="mt-1 text-[11px] text-zinc-400">
+                Seus links de jogos serão gerados com essa tag (ex: <code>?ref={affiliateTag || "suatag"}</code>).
+              </p>
+            </div>
+
+            <div>
               <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Código de Indicação (Opcional)
+                Código de Indicação de Amigo (Opcional)
               </label>
               <input
                 type="text"
@@ -186,9 +205,9 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={!termsAccepted}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-primary text-dark-950 font-bold text-sm hover:bg-brand-primaryHover transition shadow-lg shadow-brand-primary/20 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-[#00F59B] to-emerald-400 hover:from-emerald-400 hover:to-green-300 text-dark-950 font-black text-sm transition shadow-lg shadow-brand-primary/20 disabled:opacity-50 cursor-pointer"
             >
-              <span>Continuar para Onboarding</span>
+              <span>Criar Minha Conta & Acessar</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
