@@ -123,6 +123,7 @@ interface KrsStoreContextType {
   affiliateConversions: AffiliateConversionRecord[];
   totalAffiliateBalance: number;
   withdrawAffiliate: (amount: number, pixKey: string, pixType: string, gameId?: string) => Promise<{ success: boolean; message: string; txId: string }>;
+  updateAffiliateCode: (code: string) => void;
   isAffiliateUser: boolean;
 
   // In-App Game Player
@@ -136,7 +137,7 @@ interface KrsStoreContextType {
 
 const KrsStoreContext = createContext<KrsStoreContextType | null>(null);
 
-const STORAGE_KEY = "krs_creator_hub_v3_store";
+const STORAGE_KEY = "krs_creator_hub_v4_prod";
 
 export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   // Initialize state
@@ -147,123 +148,18 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
   const [affiliateConversions, setAffiliateConversions] = useState<AffiliateConversionRecord[]>(SEED_AFFILIATE_CONVERSIONS);
   const [walletModalOpen, setWalletModalOpen] = useState(false);
   const [playingGame, setPlayingGame] = useState<Game | null>(null);
-  const [creatorCampaigns, setCreatorCampaigns] = useState<Record<string, { currentStep: number; completedMissions: string[]; status: string }>>({
-    "camp-fruit-cash-fatia-pix": {
-      currentStep: 2,
-      completedMissions: ["m-fc-1"],
-      status: "in_progress",
-    },
-  });
+  const [creatorCampaigns, setCreatorCampaigns] = useState<Record<string, { currentStep: number; completedMissions: string[]; status: string }>>({});
   const [submissions, setSubmissions] = useState<Submission[]>(SEED_SUBMISSIONS);
   const [levels, setLevels] = useState<LevelConfig[]>(SEED_LEVELS);
   const [badges, setBadges] = useState<Badge[]>(SEED_BADGES);
-  const [userBadges, setUserBadges] = useState<string[]>([
-    "badge-primeira-campanha",
-    "badge-entrega-perfeita",
-    "badge-creator-consistente",
-  ]);
+  const [userBadges, setUserBadges] = useState<string[]>([]);
   const [xpEvents, setXpEvents] = useState<XPEventConfig[]>(SEED_XP_EVENTS);
   const [creatorPass, setCreatorPass] = useState<CreatorPassSeason>(SEED_CREATOR_PASS);
-  const [referrals, setReferrals] = useState<ReferralRecord[]>([
-    {
-      id: "ref-1",
-      captador_id: "user-captador-1",
-      referred_user_id: "user-creator-1",
-      referred_name: "Lucas Alencar",
-      referred_username: "lucas_gaming",
-      referred_avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-      status: "completed_campaign",
-      joined_at: "2026-08-01T10:00:00Z",
-      campaigns_completed: 7,
-      xp_generated_for_captador: 700,
-    },
-    {
-      id: "ref-2",
-      captador_id: "user-captador-1",
-      referred_user_id: "user-creator-2",
-      referred_name: "Beatriz Lima",
-      referred_username: "biagames",
-      referred_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80",
-      status: "active",
-      joined_at: "2026-09-02T14:00:00Z",
-      campaigns_completed: 2,
-      xp_generated_for_captador: 200,
-    },
-    {
-      id: "ref-3",
-      captador_id: "user-captador-1",
-      referred_user_id: "user-creator-3",
-      referred_name: "Gabriel Santos",
-      referred_username: "gabriel_play",
-      referred_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80",
-      status: "registered",
-      joined_at: "2026-09-14T11:00:00Z",
-      campaigns_completed: 0,
-      xp_generated_for_captador: 0,
-    },
-  ]);
+  const [referrals, setReferrals] = useState<ReferralRecord[]>([]);
   const [creativeAssets, setCreativeAssets] = useState<CreativeAsset[]>(SEED_CREATIVE_ASSETS);
   const [scripts, setScripts] = useState<ScriptTemplate[]>(SEED_SCRIPTS);
-  const [notifications, setNotifications] = useState<AppNotification[]>([
-    {
-      id: "notif-1",
-      user_id: "user-creator-1",
-      type: "mission_approved",
-      title: "Missão Aprovada!",
-      message: "Sua entrega para a missão 'Confirmação & Download do Jogo' foi aprovada. +50 XP adicionados!",
-      action_url: "/campanhas/bubbles-cash-setembro",
-      read: false,
-      created_at: "2026-09-12T16:00:00Z",
-    },
-    {
-      id: "notif-2",
-      user_id: "user-creator-1",
-      type: "level_up",
-      title: "Você subiu para o Nível 5!",
-      message: "Parabéns, você agora é Creator Elite e desbloqueou multiplicador 1.25x!",
-      read: true,
-      created_at: "2026-09-10T12:00:00Z",
-    },
-    {
-      id: "notif-3",
-      user_id: "user-creator-1",
-      type: "new_campaign",
-      title: "Nova Campanha Disponível",
-      message: "Blockerino: Mestre dos Blocos abriu novas vagas para criadores com bônus de XP.",
-      action_url: "/campanhas/blockerino-mestre-dos-blocos",
-      read: true,
-      created_at: "2026-09-05T14:00:00Z",
-    },
-  ]);
-  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([
-    {
-      id: "log-1",
-      user_id: "user-creator-1",
-      user_name: "Lucas Alencar",
-      user_role: "INFLUENCER",
-      action: "submission_created",
-      details: "Enviou material em vídeo para a missão 'Gravar Gameplay com Alta Habilidade'",
-      created_at: "2026-09-15T21:30:00Z",
-    },
-    {
-      id: "log-2",
-      user_id: "user-admin-1",
-      user_name: "KRS Operations Master",
-      user_role: "ADMIN",
-      action: "submission_approved",
-      details: "Aprovou a missão 'Confirmação & Download' de Lucas Alencar",
-      created_at: "2026-09-12T16:00:00Z",
-    },
-    {
-      id: "log-3",
-      user_id: "user-captador-1",
-      user_name: "Marcos Vinicius",
-      user_role: "CAPTADOR",
-      action: "referral_registered",
-      details: "Convidou Gabriel Santos (@gabriel_play) via link de indicação MARCOS10",
-      created_at: "2026-09-14T11:00:00Z",
-    },
-  ]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [settings, setSettings] = useState<PlatformSettings>(INITIAL_SETTINGS);
   const [levelUpNotification, setLevelUpNotification] = useState<{
     show: boolean;
@@ -858,6 +754,29 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateAffiliateCode = (newCode: string) => {
+    const cleanCode = newCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    if (!cleanCode) return;
+
+    const updatedUser = { ...currentUser, affiliate_code: cleanCode };
+    setCurrentUser(updatedUser);
+
+    const updatedStats = affiliateStats.map((stat) => {
+      let base = "";
+      if (stat.game_slug === "fruit-cash") base = "https://fruitcash-fun.vercel.app/";
+      else if (stat.game_slug === "krs-777") base = "https://krs777.online/";
+      else if (stat.game_slug === "blockerino") base = "https://blockerino-play.vercel.app/";
+      else if (stat.game_slug === "bubbles-cash") base = "https://bubblecash-platform.vercel.app/";
+      else base = stat.referral_url.split("?")[0];
+
+      const url = `${base}?${stat.referral_param || "ref"}=${cleanCode}`;
+      return { ...stat, referral_url: url };
+    });
+    setAffiliateStats(updatedStats);
+    persist({ currentUser: updatedUser, affiliateStats: updatedStats });
+    logAction("affiliate_code_updated", `Código de afiliado configurado para '${cleanCode}'`);
+  };
+
   const openGamePlayer = (game: Game) => {
     setPlayingGame(game);
   };
@@ -923,6 +842,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         affiliateConversions,
         totalAffiliateBalance,
         withdrawAffiliate,
+        updateAffiliateCode,
         isAffiliateUser,
         playingGame,
         openGamePlayer,

@@ -29,6 +29,7 @@ export default function CreatorDashboardPage() {
     submissions,
     levels,
     badges,
+    userBadges,
     totalAffiliateBalance,
     affiliateStats,
   } = useKrsStore();
@@ -47,8 +48,8 @@ export default function CreatorDashboardPage() {
   const activeCampaign = campaigns.find((c) => c.id === activeCampaignId) || campaigns[0];
   const activeCampaignProgress = creatorCampaigns[activeCampaignId] || { currentStep: 1, completedMissions: [] };
   
-  const totalMissions = activeCampaign?.missions?.length || 5;
-  const completedCount = activeCampaignProgress.completedMissions?.length || 1;
+  const totalMissions = activeCampaign?.missions?.length || 4;
+  const completedCount = activeCampaignProgress.completedMissions?.length || 0;
   const campaignPercent = Math.min(100, Math.round((completedCount / totalMissions) * 100));
 
   // Current mission next action
@@ -111,7 +112,7 @@ export default function CreatorDashboardPage() {
                 <span>{greeting}, @{creator.username || "creator"}! Bora pro play?</span>
                 <span className="flex items-center gap-1 text-amber-400 font-bold">
                   <Flame className="w-3.5 h-3.5 fill-amber-400" />
-                  {creator.streak_weeks || 1} semanas streak
+                  {creator.streak_weeks || 0} semanas streak
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
@@ -285,8 +286,8 @@ export default function CreatorDashboardPage() {
             <span className="text-xs font-medium">Conteúdos Aprovados</span>
             <CheckCircle2 className="w-4 h-4 text-brand-primary" />
           </div>
-          <div className="text-2xl font-black text-brand-primary">{approvedSubmissions + 12}</div>
-          <div className="text-[10px] text-zinc-400">Mandou muito bem! 🎉</div>
+          <div className="text-2xl font-black text-brand-primary">{approvedSubmissions}</div>
+          <div className="text-[10px] text-zinc-400">Envios validados pelo admin 🎉</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-dark-900 border border-white/5 space-y-1">
@@ -294,8 +295,8 @@ export default function CreatorDashboardPage() {
             <span className="text-xs font-medium">Campanhas Zeradas</span>
             <Layers className="w-4 h-4 text-brand-neon" />
           </div>
-          <div className="text-2xl font-black text-white">{creator.completed_campaigns_count || 7}</div>
-          <div className="text-[10px] text-zinc-400">Você joga sério! 🏆</div>
+          <div className="text-2xl font-black text-white">{creator.completed_campaigns_count || 0}</div>
+          <div className="text-[10px] text-zinc-400">Campanhas finalizadas 🏆</div>
         </div>
 
         <div className="p-5 rounded-2xl bg-dark-900 border border-white/5 space-y-1">
@@ -303,8 +304,8 @@ export default function CreatorDashboardPage() {
             <span className="text-xs font-medium">Troféus & Badges</span>
             <Trophy className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-black text-purple-400">{badges.length - 2} / {badges.length}</div>
-          <div className="text-[10px] text-zinc-400">Sua estante tá pesada 🔥</div>
+          <div className="text-2xl font-black text-purple-400">{userBadges.length} / {badges.length}</div>
+          <div className="text-[10px] text-zinc-400">Conquistas desbloqueadas 🔥</div>
         </div>
       </div>
 

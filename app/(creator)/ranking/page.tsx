@@ -12,20 +12,7 @@ import {
 import { useKrsStore } from "@/lib/store/useKrsStore";
 import { formatXP } from "@/lib/utils";
 
-const LEADERBOARD_USERS = [
-  {
-    rank: 1,
-    name: "Lucas Alencar",
-    username: "lucas_gaming",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
-    level: 5,
-    levelName: "Creator Elite",
-    xp: 2430,
-    streak: 5,
-    campaigns: 7,
-    approvalRate: "98%",
-    isCurrentUser: true,
-  },
+const DEMO_LEADERBOARD = [
   {
     rank: 2,
     name: "Beatriz Lima",
@@ -81,6 +68,26 @@ const LEADERBOARD_USERS = [
 ];
 
 export default function RankingPage() {
+  const { currentUser } = useKrsStore();
+  const creatorUser = currentUser as any;
+
+  const LEADERBOARD_USERS = [
+    {
+      rank: 1,
+      name: creatorUser.name || "Seu Perfil (Creator)",
+      username: creatorUser.username || "creator",
+      avatar: creatorUser.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80",
+      level: creatorUser.current_level || 1,
+      levelName: "Starter",
+      xp: creatorUser.current_xp || 0,
+      streak: creatorUser.streak_weeks || 0,
+      campaigns: creatorUser.completed_campaigns_count || 0,
+      approvalRate: "100%",
+      isCurrentUser: true,
+    },
+    ...DEMO_LEADERBOARD,
+  ];
+
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* Header */}

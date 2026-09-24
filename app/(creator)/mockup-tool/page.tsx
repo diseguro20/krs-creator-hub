@@ -80,10 +80,10 @@ export default function MockupToolPage() {
                 onChange={(e) => setSelectedGame(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl bg-dark-850 border border-white/10 text-xs text-white focus:outline-none focus:border-brand-primary"
               >
-                <option value="Bubbles Cash">Bubbles Cash (Torneio de Habilidade)</option>
-                <option value="Blockerino">Blockerino (Grid Spatial Puzzle)</option>
-                <option value="Helix Jump">Helix Jump (Arcade Reflex)</option>
-                <option value="Flappy Cash">Flappy Cash (Timing Challenge)</option>
+                <option value="Fruit Cash">Fruit Cash (Jogo da Frutinha)</option>
+                <option value="KRS 777">KRS 777 (Casino Online & Slots)</option>
+                <option value="Blockerino">Blockerino (Grid 10x10 Puzzle)</option>
+                <option value="Bubble Cash">Bubble Cash (Bubble Shooter)</option>
               </select>
             </div>
 

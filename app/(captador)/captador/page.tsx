@@ -51,14 +51,14 @@ export default function CaptadorDashboardPage() {
   };
 
   // Funnel calculations
-  const totalInvites = 45;
-  const registeredCount = referrals.length + 15;
-  const activeCount = referrals.filter((r) => r.status === "active" || r.status === "completed_campaign").length + 7;
-  const completedCount = referrals.filter((r) => r.status === "completed_campaign").length + 5;
+  const totalInvites = referrals.length;
+  const registeredCount = referrals.length;
+  const activeCount = referrals.filter((r) => r.status === "active" || r.status === "completed_campaign").length;
+  const completedCount = referrals.filter((r) => r.status === "completed_campaign").length;
 
-  const convReg = Math.round((registeredCount / totalInvites) * 100);
-  const convActive = Math.round((activeCount / registeredCount) * 100);
-  const convComp = Math.round((completedCount / activeCount) * 100);
+  const convReg = totalInvites > 0 ? Math.round((registeredCount / totalInvites) * 100) : 0;
+  const convActive = registeredCount > 0 ? Math.round((activeCount / registeredCount) * 100) : 0;
+  const convComp = activeCount > 0 ? Math.round((completedCount / activeCount) * 100) : 0;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -196,9 +196,16 @@ export default function CaptadorDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {referrals.map((ref) => (
-                <tr key={ref.id} className="hover:bg-dark-850/50 transition">
-                  <td className="py-4 px-6">
+              {referrals.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-zinc-400 text-xs">
+                    Nenhum criador cadastrado na sua rede ainda. Compartilhe seu link ou convide um criador para começar!
+                  </td>
+                </tr>
+              ) : (
+                referrals.map((ref) => (
+                  <tr key={ref.id} className="hover:bg-dark-850/50 transition">
+                    <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full overflow-hidden bg-dark-800 border border-white/10 shrink-0">
                         {ref.referred_avatar ? (
@@ -242,7 +249,7 @@ export default function CaptadorDashboardPage() {
                     +{ref.xp_generated_for_captador} XP
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

@@ -35,6 +35,7 @@ export default function AffiliateHubPage() {
     affiliateConversions,
     totalAffiliateBalance,
     withdrawAffiliate,
+    updateAffiliateCode,
     currentUser,
     openGamePlayer,
     games,
@@ -42,6 +43,10 @@ export default function AffiliateHubPage() {
 
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [selectedGameFilter, setSelectedGameFilter] = useState<string>("all");
+  const [customTag, setCustomTag] = useState<string>(
+    (currentUser as any)?.affiliate_code || currentUser.username || "afiliado"
+  );
+  const [tagSuccess, setTagSuccess] = useState(false);
 
   // Withdrawal Drawer/Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
@@ -294,16 +299,40 @@ export default function AffiliateHubPage() {
       {/* 3. OS 4 JOGOS: MULTI-LINK & METRICS GRID                                  */}
       {/* ========================================================================= */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🕹️</span>
-            <h2 className="font-pixel text-lg sm:text-xl text-white uppercase tracking-wider">
-              SEUS LINKS E SALDOS POR JOGO
-            </h2>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🕹️</span>
+              <h2 className="font-pixel text-lg sm:text-xl text-white uppercase tracking-wider">
+                SEUS LINKS E SALDOS POR JOGO
+              </h2>
+            </div>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              Links oficiais dos 4 jogos com seu código rastreado para contagem automática de comissão.
+            </p>
           </div>
-          <span className="text-xs text-zinc-400 font-medium">
-            Seus links já contêm seu código de afiliado rastreado: <code className="text-emerald-400 font-bold bg-dark-900 px-2 py-0.5 rounded border border-emerald-500/30">lucas_gaming</code>
-          </span>
+
+          {/* Interactive Tag Customizer */}
+          <div className="flex items-center gap-2 bg-[#08100c] border border-emerald-500/30 rounded-2xl p-1.5 sm:px-3">
+            <span className="text-[11px] text-zinc-400 font-bold whitespace-nowrap">Sua Tag:</span>
+            <input
+              type="text"
+              value={customTag}
+              onChange={(e) => setCustomTag(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+              placeholder="sua_tag"
+              className="bg-black/60 border border-emerald-500/40 rounded-lg px-2.5 py-1 text-xs text-emerald-400 font-mono font-bold w-24 sm:w-28 focus:outline-none focus:border-emerald-400"
+            />
+            <button
+              onClick={() => {
+                updateAffiliateCode(customTag);
+                setTagSuccess(true);
+                setTimeout(() => setTagSuccess(false), 2000);
+              }}
+              className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-dark-950 text-xs font-black uppercase tracking-wider transition active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              {tagSuccess ? "Salvo! ✓" : "Atualizar"}
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -489,54 +518,66 @@ export default function AffiliateHubPage() {
 
         {/* Conversions List */}
         <div className="divide-y divide-white/5">
-          {filteredConversions.map((conv) => (
-            <div
-              key={conv.id}
-              className="py-3 sm:py-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.02] px-2 rounded-xl transition"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-pixel text-xs">
-                  💰
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-xs sm:text-sm text-white">
-                      {conv.lead_name}
-                    </span>
-                    <span className="text-[11px] text-zinc-500 font-mono">
-                      @{conv.lead_username}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
-                    <span className="text-emerald-400 font-medium">{conv.game_name}</span>
-                    <span>•</span>
-                    <span className="capitalize">{conv.type}</span>
-                    {conv.amount_deposited && (
-                      <>
-                        <span>•</span>
-                        <span>Depositou {formatCurrency(conv.amount_deposited)}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+          {filteredConversions.length === 0 ? (
+            <div className="py-12 text-center flex flex-col items-center justify-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <Zap className="w-6 h-6 fill-emerald-400/20" />
               </div>
-
-              <div className="text-right">
-                <div className="text-sm sm:text-base font-pixel text-emerald-400 font-black">
-                  +{formatCurrency(conv.commission_amount)}
-                </div>
-                <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
-                  {new Date(conv.created_at).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              </div>
+              <div className="text-sm font-bold text-white">Nenhuma comissão registrada ainda</div>
+              <p className="text-xs text-zinc-400 max-w-md leading-relaxed">
+                Copie seus links de divulgação dos 4 jogos acima, divulgue nos seus Stories, Reels ou bio e acompanhe cada clique e depósito caindo aqui em tempo real.
+              </p>
             </div>
-          ))}
+          ) : (
+            filteredConversions.map((conv) => (
+              <div
+                key={conv.id}
+                className="py-3 sm:py-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.02] px-2 rounded-xl transition"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-pixel text-xs">
+                    💰
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-xs sm:text-sm text-white">
+                        {conv.lead_name}
+                      </span>
+                      <span className="text-[11px] text-zinc-500 font-mono">
+                        @{conv.lead_username}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
+                      <span className="text-emerald-400 font-medium">{conv.game_name}</span>
+                      <span>•</span>
+                      <span className="capitalize">{conv.type}</span>
+                      {conv.amount_deposited && (
+                        <>
+                          <span>•</span>
+                          <span>Depositou {formatCurrency(conv.amount_deposited)}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-sm sm:text-base font-pixel text-emerald-400 font-black">
+                    +{formatCurrency(conv.commission_amount)}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                    {new Date(conv.created_at).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
