@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { fetchCreatorFromFirebase } from "@/lib/firebase";
 
 /**
  * Server-Side Persistent Store for Conversions, Balances and Clicks
@@ -55,7 +56,33 @@ export interface StoredAffiliateBalance {
 declare global {
   var __KRS_SERVER_CONVERSIONS__: StoredConversion[] | undefined;
   var __KRS_SERVER_BALANCES__: Record<string, StoredAffiliateBalance> | undefined;
+  var __KRS_CODE_ALIASES__: Record<string, string[]> | undefined;
   var __KRS_STORE_INITIALIZED__: boolean | undefined;
+}
+
+export function registerAliases(codes: string[]) {
+  if (!global.__KRS_CODE_ALIASES__) {
+    global.__KRS_CODE_ALIASES__ = {};
+  }
+  const cleanCodes = codes.map((c) => (c || "").toLowerCase().trim()).filter(Boolean);
+  for (const c of cleanCodes) {
+    const existing = global.__KRS_CODE_ALIASES__[c] || [];
+    const merged = Array.from(new Set([...existing, ...cleanCodes]));
+    global.__KRS_CODE_ALIASES__[c] = merged;
+  }
+}
+
+export function getCodeAliases(code: string): string[] {
+  const clean = (code || "").toLowerCase().trim();
+  const set = new Set<string>([clean]);
+  if (clean === "diseguro20") set.add("afiliado");
+  if (clean === "afiliado") set.add("diseguro20");
+  if (global.__KRS_CODE_ALIASES__ && global.__KRS_CODE_ALIASES__[clean]) {
+    for (const a of global.__KRS_CODE_ALIASES__[clean]) {
+      set.add(a);
+    }
+  }
+  return Array.from(set);
 }
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -378,11 +405,7 @@ export function getServerConversions(affiliateCode?: string): StoredConversion[]
   initializeStore();
   const list = global.__KRS_SERVER_CONVERSIONS__ || [];
   if (!affiliateCode) return list;
-  const code = affiliateCode.toLowerCase().trim();
-  // Include aliases
-  const acceptedCodes = [code];
-  if (code === "diseguro20") acceptedCodes.push("afiliado");
-  if (code === "afiliado") acceptedCodes.push("diseguro20");
+  const acceptedCodes = getCodeAliases(affiliateCode);
 
   return list.filter((c) => acceptedCodes.includes(c.affiliate_code.toLowerCase().trim()));
 }
@@ -390,9 +413,22 @@ export function getServerConversions(affiliateCode?: string): StoredConversion[]
 export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliateBalance {
   initializeStore();
   const code = affiliateCode.toLowerCase().trim();
+  const aliases = getCodeAliases(code);
 
   if (!global.__KRS_SERVER_BALANCES__) {
     global.__KRS_SERVER_BALANCES__ = {};
+  }
+
+  // Check if any alias already has a balance
+  for (const a of aliases) {
+    if (global.__KRS_SERVER_BALANCES__[a] && a !== code) {
+      const aliasBal = global.__KRS_SERVER_BALANCES__[a];
+      global.__KRS_SERVER_BALANCES__[code] = {
+        ...aliasBal,
+        affiliate_code: code,
+      };
+      return global.__KRS_SERVER_BALANCES__[code];
+    }
   }
 
   if (!global.__KRS_SERVER_BALANCES__[code]) {
@@ -417,6 +453,227 @@ export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliat
   }
 
   return bal;
+}
+
+/**
+ * Reconciliação Automática Multi-Plataforma:
+ * Puxa os dados reais de comissão, depósitos e cadastros diretamente das plataformas oficiais
+ * (Fruit Cash, Bubble Cash, etc.) para a tag fornecida pelo usuário em tempo real.
+ */
+export async function reconcileExternalGameStats(affiliateCode: string): Promise<StoredAffiliateBalance> {
+  const code = (affiliateCode || "afiliado").toLowerCase().trim();
+  const balance = getServerAffiliateBalance(code);
+
+  let updated = false;
+
+  // 1. RECONCILIAÇÃO DO FRUIT CASH
+  try {
+    let fruitCashData: any = null;
+
+    // A) Verifica base de dados local do Fruit Cash
+    const possiblePaths = [
+      "c:\\Users\\diseg\\Downloads\\CLONE_fruitcash_fun_1790135933827\\.data\\fruitcash-db.json",
+      path.join(process.cwd(), "..", "CLONE_fruitcash_fun_1790135933827", ".data", "fruitcash-db.json"),
+      path.join(process.cwd(), ".data", "fruitcash-db.json"),
+    ];
+
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        try {
+          const raw = fs.readFileSync(p, "utf8");
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.users)) {
+            const u = parsed.users.find((user: any) =>
+              (user.ref_code && user.ref_code.toLowerCase() === code) ||
+              (user.username && user.username.toLowerCase() === code) ||
+              (user.id && user.id.toLowerCase() === code)
+            );
+
+            if (u) {
+              const uId = u.id;
+              const uRef = (u.ref_code || u.username || "").toLowerCase();
+              const uUser = (u.username || "").toLowerCase();
+              registerAliases([code, uId, uRef, uUser]);
+
+              const directUsers = parsed.users.filter((item: any) =>
+                item.referred_by === uId ||
+                (item.referred_by && item.referred_by.toLowerCase() === uRef) ||
+                (item.referred_by && item.referred_by.toLowerCase() === uUser) ||
+                (item.origin?.affiliate && (
+                  item.origin.affiliate.id === uId ||
+                  (item.origin.affiliate.code && item.origin.affiliate.code.toLowerCase() === uRef) ||
+                  (item.origin.affiliate.username && item.origin.affiliate.username.toLowerCase() === uUser)
+                ))
+              );
+
+              const directUserIds = new Set(directUsers.map((item: any) => item.id));
+
+              const deps = (parsed.deposits || []).filter((d: any) =>
+                d && d.status === "approved" && (
+                  directUserIds.has(d.uid) ||
+                  (d.ref && (d.ref === uId || d.ref.toLowerCase() === uRef || d.ref.toLowerCase() === uUser)) ||
+                  (d.affiliate_code && (d.affiliate_code === uId || d.affiliate_code.toLowerCase() === uRef || d.affiliate_code.toLowerCase() === uUser))
+                )
+              );
+
+              const totalDepCents = deps.reduce((sum: number, d: any) => sum + (d.amount || 0), 0);
+              const totalDepReais = Number((totalDepCents / 100).toFixed(2));
+              const affBalReais = u.affiliate_balance
+                ? Number((u.affiliate_balance / 100).toFixed(2))
+                : Number((totalDepReais * 0.2).toFixed(2));
+
+              fruitCashData = {
+                found: true,
+                signups: directUsers.length,
+                deposits_count: deps.length,
+                total_deposited: totalDepReais,
+                available_balance: affBalReais,
+                leads: directUsers.map((item: any) => ({
+                  player_id: item.id,
+                  player_name: item.username || item.name || "Jogador",
+                  player_email: item.email || "",
+                  created_at: item.created_at || new Date().toISOString(),
+                  event_type: "signup",
+                })),
+                deposits: deps.map((d: any) => {
+                  const depAmt = Number(((d.amount || 0) / 100).toFixed(2));
+                  const commAmt = Math.max(8, Number((depAmt * 0.2).toFixed(2)));
+                  return {
+                    id: `conv_${d.id}`,
+                    game_slug: "fruit-cash",
+                    game_name: "Fruit Cash",
+                    affiliate_code: code,
+                    event_type: "deposit",
+                    player_name: d.username || "Jogador",
+                    player_id: d.uid || `usr_${d.id}`,
+                    amount_deposited: depAmt,
+                    commission_amount: commAmt,
+                    transaction_id: d.transactionId || d.id,
+                    payment_gateway: "vizzionpay",
+                    status: "available_for_pix_withdrawal",
+                    received_at: d.approved_at || d.created_at || new Date().toISOString(),
+                  };
+                }),
+              };
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    // B) Consulta remota via API do Fruit Cash
+    if (!fruitCashData) {
+      const endpoints = [
+        "http://localhost:3000/api/affiliate/query?code=" + encodeURIComponent(code),
+        "https://fruitcash-fun.vercel.app/api/affiliate/query?code=" + encodeURIComponent(code),
+      ];
+      for (const ep of endpoints) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 2000);
+          const res = await fetch(ep, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.found) {
+              fruitCashData = data;
+              if (data.affiliate) {
+                registerAliases([code, data.affiliate.id, data.affiliate.ref_code, data.affiliate.username]);
+              }
+              break;
+            }
+          }
+        } catch (_) {}
+      }
+    }
+
+    // C) Aplica dados do Fruit Cash
+    if (fruitCashData && fruitCashData.found) {
+      updated = true;
+      const fc = balance.games_breakdown["fruit-cash"] || createDefaultGameMetrics("fruit-cash");
+      fc.signups = Math.max(fc.signups || 0, fruitCashData.signups || 0);
+      fc.deposits_count = Math.max(fc.deposits_count || 0, fruitCashData.deposits_count || 0);
+      fc.total_deposited = Math.max(fc.total_deposited || 0, fruitCashData.total_deposited || 0);
+      fc.commission_earned = Math.max(fc.commission_earned || 0, fruitCashData.available_balance || 0);
+      fc.available_balance = Math.max(fc.available_balance || 0, fruitCashData.available_balance || 0);
+
+      balance.games_breakdown["fruit-cash"] = fc;
+      balance.available_balance = Math.max(balance.available_balance || 0, fc.available_balance);
+      balance.vizzion_balance = Math.max(balance.vizzion_balance || 0, fc.available_balance);
+      balance.total_signups = Math.max(balance.total_signups || 0, fc.signups);
+      balance.total_leads = Math.max(balance.total_leads || 0, fc.signups + fc.deposits_count);
+
+      // Injeta conversões de depósito
+      if (Array.isArray(fruitCashData.deposits)) {
+        for (const dep of fruitCashData.deposits) {
+          const existing = (global.__KRS_SERVER_CONVERSIONS__ || []).find((c) => c.transaction_id === dep.transaction_id || c.id === dep.id);
+          if (!existing) {
+            global.__KRS_SERVER_CONVERSIONS__ = [dep, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 200);
+          } else {
+            existing.affiliate_code = code;
+          }
+        }
+      }
+
+      // Injeta cadastros
+      if (Array.isArray(fruitCashData.leads)) {
+        for (const lead of fruitCashData.leads) {
+          const exists = (global.__KRS_SERVER_CONVERSIONS__ || []).some(
+            (c) => c.player_id === lead.player_id && c.event_type === "signup" && c.affiliate_code === code
+          );
+          if (!exists) {
+            const signupConv: StoredConversion = {
+              id: `conv_signup_${lead.player_id}_${code}`,
+              game_slug: "fruit-cash",
+              game_name: "Fruit Cash",
+              affiliate_code: code,
+              event_type: "signup",
+              player_name: lead.player_name,
+              player_id: lead.player_id,
+              player_email: lead.player_email,
+              amount_deposited: 0,
+              commission_amount: 0,
+              transaction_id: `signup_${lead.player_id}`,
+              payment_gateway: "vizzionpay",
+              status: "available_for_pix_withdrawal",
+              received_at: lead.created_at,
+            };
+            global.__KRS_SERVER_CONVERSIONS__ = [signupConv, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 200);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[RECONCILIAÇÃO FRUIT CASH] Falha não-bloqueante:", err);
+  }
+
+  // 2. RECONCILIAÇÃO DO BUBBLE CASH / BLOCKERINO (via Firebase)
+  try {
+    const cloudData = await fetchCreatorFromFirebase(code);
+    if (cloudData) {
+      updated = true;
+      if (typeof cloudData.available_balance === "number") {
+        balance.available_balance = Math.max(balance.available_balance, cloudData.available_balance);
+      }
+      if (typeof cloudData.total_leads === "number") {
+        balance.total_leads = Math.max(balance.total_leads, cloudData.total_leads);
+      }
+    }
+  } catch (_) {}
+
+  balance.updated_at = new Date().toISOString();
+
+  if (!global.__KRS_SERVER_BALANCES__) {
+    global.__KRS_SERVER_BALANCES__ = {};
+  }
+  global.__KRS_SERVER_BALANCES__[code] = balance;
+
+  if (updated) {
+    saveStoreToFile();
+  }
+
+  return balance;
 }
 
 export function deductServerAffiliateBalance(

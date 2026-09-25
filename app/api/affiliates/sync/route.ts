@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerAffiliateBalance, getServerConversions } from "@/lib/server-store";
-import { fetchCreatorFromFirebase } from "@/lib/firebase";
+import { getServerAffiliateBalance, getServerConversions, reconcileExternalGameStats } from "@/lib/server-store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,17 +8,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = (searchParams.get("code") || "afiliado").toLowerCase().trim();
 
-  // 1. Get from server in-memory store
-  const serverBalance = getServerAffiliateBalance(code);
+  // 1. Reconciliação automática em tempo real com as plataformas (Fruit Cash, etc.)
+  const serverBalance = await reconcileExternalGameStats(code);
   const serverConversions = getServerConversions(code);
-
-  // 2. Try fetching cloud Firebase if available
-  let firebaseData = null;
-  try {
-    firebaseData = await fetchCreatorFromFirebase(code);
-  } catch (e) {
-    // Non-blocking fallback
-  }
 
   return NextResponse.json(
     {
@@ -27,7 +18,6 @@ export async function GET(req: NextRequest) {
       affiliate_code: code,
       server_balance: serverBalance,
       conversions: serverConversions,
-      cloud_synced: !!firebaseData,
       timestamp: new Date().toISOString(),
     },
     {

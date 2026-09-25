@@ -451,18 +451,31 @@ export default function AffiliateHubPage() {
               type="text"
               value={customTag}
               onChange={(e) => setCustomTag(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+              onKeyDown={async (e) => {
+                if (e.key === "Enter") {
+                  const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+                  if (!clean) return;
+                  updateAffiliateCode(clean);
+                  setTagSuccess(true);
+                  await fetchSync();
+                  setTimeout(() => setTagSuccess(false), 2000);
+                }
+              }}
               placeholder="sua_tag"
               className="bg-black/60 border border-emerald-500/40 rounded-lg px-2.5 py-1 text-xs text-emerald-400 font-mono font-bold w-24 sm:w-28 focus:outline-none focus:border-emerald-400"
             />
             <button
-              onClick={() => {
-                updateAffiliateCode(customTag);
+              onClick={async () => {
+                const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+                if (!clean) return;
+                updateAffiliateCode(clean);
                 setTagSuccess(true);
+                await fetchSync();
                 setTimeout(() => setTagSuccess(false), 2000);
               }}
               className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-dark-950 text-xs font-black uppercase tracking-wider transition active:scale-95 cursor-pointer whitespace-nowrap"
             >
-              {tagSuccess ? "Salvo! ✓" : "Atualizar"}
+              {tagSuccess ? "Puxado! ✓" : "Atualizar"}
             </button>
           </div>
         </div>
