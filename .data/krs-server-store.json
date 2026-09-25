@@ -1,0 +1,137 @@
+{
+  "conversions": [
+    {
+      "id": "conv_test_friend_afiliado_1790300024027",
+      "game_slug": "fruit-cash",
+      "game_name": "Fruit Cash",
+      "affiliate_code": "afiliado",
+      "event_type": "signup",
+      "player_name": "pivetti.jr (Amigo Teste)",
+      "player_id": "02e10a84-5526-4ae9-83aa-c6bacb88a7f9",
+      "player_email": "pivetti.jr@icloud.com",
+      "amount_deposited": 0,
+      "commission_amount": 0,
+      "transaction_id": "signup_02e10a84_afiliado",
+      "payment_gateway": "vizzionpay",
+      "status": "available_for_pix_withdrawal",
+      "received_at": "2026-09-23T23:00:27.448Z"
+    },
+    {
+      "id": "conv_test_friend_diseguro20_1790300024026",
+      "game_slug": "fruit-cash",
+      "game_name": "Fruit Cash",
+      "affiliate_code": "diseguro20",
+      "event_type": "signup",
+      "player_name": "pivetti.jr (Amigo Teste)",
+      "player_id": "02e10a84-5526-4ae9-83aa-c6bacb88a7f9",
+      "player_email": "pivetti.jr@icloud.com",
+      "amount_deposited": 0,
+      "commission_amount": 0,
+      "transaction_id": "signup_02e10a84_diseguro20",
+      "payment_gateway": "vizzionpay",
+      "status": "available_for_pix_withdrawal",
+      "received_at": "2026-09-23T23:00:27.448Z"
+    }
+  ],
+  "balances": {
+    "diseguro20": {
+      "affiliate_code": "diseguro20",
+      "total_withdrawn_pix": 0,
+      "available_balance": 0,
+      "omega_balance": 0,
+      "vizzion_balance": 0,
+      "total_leads": 1,
+      "total_clicks": 1,
+      "total_signups": 1,
+      "games_breakdown": {
+        "fruit-cash": {
+          "clicks": 1,
+          "signups": 1,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "vizzionpay"
+        },
+        "krs-777": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "vizzionpay"
+        },
+        "blockerino": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "omegapay"
+        },
+        "bubbles-cash": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "omegapay"
+        }
+      },
+      "updated_at": "2026-09-25T01:35:53.342Z"
+    },
+    "afiliado": {
+      "affiliate_code": "afiliado",
+      "total_withdrawn_pix": 0,
+      "available_balance": 0,
+      "omega_balance": 0,
+      "vizzion_balance": 0,
+      "total_leads": 1,
+      "total_clicks": 1,
+      "total_signups": 1,
+      "games_breakdown": {
+        "fruit-cash": {
+          "clicks": 1,
+          "signups": 1,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "vizzionpay"
+        },
+        "krs-777": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "vizzionpay"
+        },
+        "blockerino": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "omegapay"
+        },
+        "bubbles-cash": {
+          "clicks": 0,
+          "signups": 0,
+          "deposits_count": 0,
+          "total_deposited": 0,
+          "commission_earned": 0,
+          "available_balance": 0,
+          "gateway": "omegapay"
+        }
+      },
+      "updated_at": "2026-09-25T01:33:44.027Z"
+    }
+  },
+  "saved_at": "2026-09-25T01:37:06.124Z"
+}

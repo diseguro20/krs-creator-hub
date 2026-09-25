@@ -135,6 +135,7 @@ interface KrsStoreContextType {
   totalAffiliateBalance: number;
   withdrawAffiliate: (amount: number, pixKey: string, pixType: string, gameId?: string) => Promise<{ success: boolean; message: string; txId: string }>;
   updateAffiliateCode: (code: string) => void;
+  recordClick: (gameSlug: string, affiliateCode?: string) => Promise<void>;
   isAffiliateUser: boolean;
 
   // In-App Game Player
@@ -343,22 +344,16 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     setCurrentUser(newUser);
 
     const updatedStats = affiliateStats.map((stat) => {
-      let base = "";
-      if (stat.game_slug === "fruit-cash") base = "https://fruitcash-fun.vercel.app/";
-      else if (stat.game_slug === "krs-777") base = "https://krs777.online/";
-      else if (stat.game_slug === "blockerino") base = "https://blockerino-play.vercel.app/";
-      else if (stat.game_slug === "bubbles-cash") base = "https://bubblecash-platform.vercel.app/";
-      else base = stat.referral_url.split("?")[0];
-
-      const url = `${base}?${stat.referral_param || "ref"}=${cleanCode}`;
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://krs-creator-hub.vercel.app";
+      const url = `${origin}/r/${stat.game_slug}?ref=${cleanCode}`;
       return {
         ...stat,
         referral_url: url,
         available_balance: 0,
         total_earned: 0,
-        total_clicks: 0,
-        total_signups: 0,
-        total_deposits: 0,
+        clicks: 0,
+        signups: 0,
+        deposits_count: 0,
       };
     });
 
@@ -943,15 +938,9 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     const cleanCode = newCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
     if (!cleanCode) return;
 
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://krs-creator-hub.vercel.app";
     const updatedStats = affiliateStats.map((stat) => {
-      let base = "";
-      if (stat.game_slug === "fruit-cash") base = "https://fruitcash-fun.vercel.app/";
-      else if (stat.game_slug === "krs-777") base = "https://krs777.online/";
-      else if (stat.game_slug === "blockerino") base = "https://blockerino-play.vercel.app/";
-      else if (stat.game_slug === "bubbles-cash") base = "https://bubblecash-platform.vercel.app/";
-      else base = stat.referral_url.split("?")[0];
-
-      const url = `${base}?${stat.referral_param || "ref"}=${cleanCode}`;
+      const url = `${origin}/r/${stat.game_slug}?ref=${cleanCode}`;
       return { ...stat, referral_url: url };
     });
     setAffiliateStats(updatedStats);
@@ -965,6 +954,17 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
     }
 
     logAction("affiliate_code_updated", `Código de afiliado configurado para '${cleanCode}'`);
+  };
+
+  const recordClick = async (gameSlug: string, affiliateCode?: string) => {
+    const code = affiliateCode || (currentUser as any)?.affiliate_code || currentUser?.username || "afiliado";
+    try {
+      await fetch(`/api/affiliates/clicks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ affiliate_code: code, game_slug: gameSlug }),
+      });
+    } catch (_) {}
   };
 
   const openGamePlayer = (game: Game) => {
@@ -1038,6 +1038,7 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         totalAffiliateBalance,
         withdrawAffiliate,
         updateAffiliateCode,
+        recordClick,
         isAffiliateUser,
         playingGame,
         openGamePlayer,

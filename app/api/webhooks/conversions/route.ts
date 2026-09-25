@@ -5,6 +5,9 @@ import { saveCreatorToFirebase } from "@/lib/firebase";
 // Standard secret key (can also be loaded from process.env.KRS_WEBHOOK_SECRET)
 const KRS_MASTER_SECRET = process.env.KRS_WEBHOOK_SECRET || "krs_sec_live_99f821a084c7e481b3";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("x-krs-secret") || req.headers.get("authorization");
@@ -67,9 +70,9 @@ export async function POST(req: NextRequest) {
         // Default rule: 20% revshare or R$ 10 CPA
         finalCommission = Math.max(10, Number(amount_deposited) * 0.2);
       } else if (event_type === "signup") {
-        finalCommission = 2.0; // R$ 2 por cadastro qualificado
+        finalCommission = 0; // Default R$ 0 CPA por cadastro (ou conforme configurado)
       } else {
-        finalCommission = 5.0;
+        finalCommission = 0;
       }
     }
 

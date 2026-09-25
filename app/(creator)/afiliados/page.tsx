@@ -56,6 +56,108 @@ export default function AffiliateHubPage() {
     }
   }, [currentUser]);
 
+  // Real-time server sync for webhooks and clicks from the 4 games
+  const [liveServerConversions, setLiveServerConversions] = useState<any[]>([]);
+  const [liveServerBalance, setLiveServerBalance] = useState<number | null>(null);
+  const [liveServerBreakdown, setLiveServerBreakdown] = useState<Record<string, any>>({});
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>("");
+
+  const fetchSync = async () => {
+    try {
+      setIsSyncing(true);
+      const tag = customTag || (currentUser as any)?.affiliate_code || currentUser?.username || "afiliado";
+      const res = await fetch(`/api/affiliates/sync?code=${encodeURIComponent(tag)}&_t=${Date.now()}`);
+      const data = await res.json();
+      if (data.success) {
+        if (data.conversions && Array.isArray(data.conversions)) {
+          setLiveServerConversions(data.conversions);
+        }
+        if (data.server_balance) {
+          if (typeof data.server_balance.available_balance === "number") {
+            setLiveServerBalance(data.server_balance.available_balance);
+          }
+          if (data.server_balance.games_breakdown) {
+            setLiveServerBreakdown(data.server_balance.games_breakdown);
+          }
+        }
+        setLastSyncTime(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      }
+    } catch (e) {
+      // Non-blocking fallback
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSync();
+    const timer = setInterval(fetchSync, 3000); // 3 seconds fast real-time poll
+    return () => clearInterval(timer);
+  }, [customTag, currentUser]);
+
+  // Merge local affiliate stats with live server breakdown
+  const displayAffiliateStats = affiliateStats.map((item) => {
+    const serverGame = liveServerBreakdown[item.game_slug] || liveServerBreakdown[item.game_id] || null;
+    const clicks = serverGame ? Math.max(item.clicks || 0, serverGame.clicks || 0) : (item.clicks || 0);
+    const signups = serverGame ? Math.max(item.signups || 0, serverGame.signups || 0) : (item.signups || 0);
+    const deposits_count = serverGame ? Math.max(item.deposits_count || 0, serverGame.deposits_count || 0) : (item.deposits_count || 0);
+    const total_deposited = serverGame ? Math.max(item.total_deposited || 0, serverGame.total_deposited || 0) : (item.total_deposited || 0);
+    const commission_earned = serverGame ? Math.max(item.commission_earned || 0, serverGame.commission_earned || 0) : (item.commission_earned || 0);
+    const available_balance = serverGame ? Math.max(item.available_balance || 0, serverGame.available_balance || 0) : (item.available_balance || 0);
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://krs-creator-hub.vercel.app";
+    const trackedUrl = `${origin}/r/${item.game_slug}?ref=${encodeURIComponent(customTag || "afiliado")}`;
+
+    return {
+      ...item,
+      clicks,
+      signups,
+      deposits_count,
+      total_deposited,
+      commission_earned,
+      available_balance,
+      referral_url: trackedUrl,
+    };
+  });
+
+  // Total consolidated stats
+  const totalClicks = displayAffiliateStats.reduce((acc, g) => acc + g.clicks, 0);
+  const totalSignups = displayAffiliateStats.reduce((acc, g) => acc + g.signups, 0);
+  const totalDeposited = displayAffiliateStats.reduce((acc, g) => acc + g.total_deposited, 0);
+  const totalCommissionsEarned = displayAffiliateStats.reduce((acc, g) => acc + g.commission_earned, 0);
+
+  // Combined conversions (local + live server webhooks)
+  const allConversions: AffiliateConversionRecord[] = [
+    ...liveServerConversions.map((sc) => ({
+      id: sc.id,
+      game_id: sc.game_slug,
+      game_name: sc.game_name,
+      game_slug: sc.game_slug,
+      lead_name: sc.player_name,
+      lead_username: sc.player_id,
+      type: sc.event_type as any,
+      amount_deposited: sc.amount_deposited,
+      commission_amount: sc.commission_amount,
+      status: "available" as const,
+      created_at: sc.received_at,
+    })),
+    ...affiliateConversions,
+  ];
+
+  const currentAvailableBalance =
+    liveServerBalance !== null && liveServerBalance > totalAffiliateBalance
+      ? liveServerBalance
+      : totalAffiliateBalance;
+
+  // Filter conversions
+  const filteredConversions =
+    selectedGameFilter === "all"
+      ? allConversions
+      : allConversions.filter(
+          (c) => c.game_id === selectedGameFilter || c.game_slug === selectedGameFilter
+        );
+
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawGameId, setWithdrawGameId] = useState<string>("all");
   const [withdrawAmount, setWithdrawAmount] = useState<string>("");
@@ -90,7 +192,7 @@ export default function AffiliateHubPage() {
     if (gameId === "all") {
       setWithdrawAmount(currentAvailableBalance.toFixed(2));
     } else {
-      const g = affiliateStats.find((s) => s.game_id === gameId);
+      const g = displayAffiliateStats.find((s) => s.game_id === gameId);
       setWithdrawAmount(g ? g.available_balance.toFixed(2) : "0.00");
     }
 
@@ -161,7 +263,7 @@ export default function AffiliateHubPage() {
       // Atualiza saldo na store local
       const res = await withdrawAffiliate(amountNum, pixKey, pixKeyType, withdrawGameId);
 
-      const gameObj = affiliateStats.find((g) => g.game_id === withdrawGameId);
+      const gameObj = displayAffiliateStats.find((g) => g.game_id === withdrawGameId);
       setReceipt({
         txId: apiData.data?.txId || res.txId,
         amount: amountNum,
@@ -181,74 +283,6 @@ export default function AffiliateHubPage() {
     }
   };
 
-  // Real-time server sync for webhooks from the 4 games
-  const [liveServerConversions, setLiveServerConversions] = useState<any[]>([]);
-  const [liveServerBalance, setLiveServerBalance] = useState<number | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchSync = async () => {
-      try {
-        const res = await fetch(`/api/affiliates/sync?code=${customTag || "afiliado"}`);
-        const data = await res.json();
-        if (data.success && isMounted) {
-          if (data.conversions && Array.isArray(data.conversions)) {
-            setLiveServerConversions(data.conversions);
-          }
-          if (data.server_balance && typeof data.server_balance.available_balance === "number") {
-            setLiveServerBalance(data.server_balance.available_balance);
-          }
-        }
-      } catch (e) {
-        // Non-blocking fallback
-      }
-    };
-
-    fetchSync();
-    const timer = setInterval(fetchSync, 10000);
-    return () => {
-      isMounted = false;
-      clearInterval(timer);
-    };
-  }, [customTag]);
-
-  // Total consolidated stats
-  const totalClicks = affiliateStats.reduce((acc, g) => acc + g.clicks, 0);
-  const totalSignups = affiliateStats.reduce((acc, g) => acc + g.signups, 0);
-  const totalDeposited = affiliateStats.reduce((acc, g) => acc + g.total_deposited, 0);
-  const totalCommissionsEarned = affiliateStats.reduce((acc, g) => acc + g.commission_earned, 0);
-
-  // Combined conversions (local + live server webhooks)
-  const allConversions: AffiliateConversionRecord[] = [
-    ...liveServerConversions.map((sc) => ({
-      id: sc.id,
-      game_id: sc.game_slug,
-      game_name: sc.game_name,
-      game_slug: sc.game_slug,
-      lead_name: sc.player_name,
-      lead_username: sc.player_id,
-      type: sc.event_type as any,
-      amount_deposited: sc.amount_deposited,
-      commission_amount: sc.commission_amount,
-      status: "available" as const,
-      created_at: sc.received_at,
-    })),
-    ...affiliateConversions,
-  ];
-
-  const currentAvailableBalance =
-    liveServerBalance !== null && liveServerBalance > totalAffiliateBalance
-      ? liveServerBalance
-      : totalAffiliateBalance;
-
-  // Filter conversions
-  const filteredConversions =
-    selectedGameFilter === "all"
-      ? allConversions
-      : allConversions.filter(
-          (c) => c.game_id === selectedGameFilter || c.game_slug === selectedGameFilter
-        );
-
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
       {/* ========================================================================= */}
@@ -264,8 +298,18 @@ export default function AffiliateHubPage() {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-[10px] sm:text-xs font-pixel text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>PAINEL UNIFICADO DE AFILIADO • 4 JOGOS NO AR</span>
+              <span className={`w-2 h-2 rounded-full ${isSyncing ? "bg-amber-400 animate-spin" : "bg-emerald-400 animate-pulse"}`} />
+              <span>CONTAGEM EM TEMPO REAL ATIVA • 4 JOGOS</span>
+              {lastSyncTime && (
+                <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">({lastSyncTime})</span>
+              )}
+              <button
+                onClick={fetchSync}
+                className="ml-1 text-emerald-300 hover:text-white transition active:scale-90 cursor-pointer p-0.5"
+                title="Sincronizar agora"
+              >
+                <RotateCcw className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+              </button>
             </div>
 
             <h1 className="font-pixel text-2xl sm:text-4xl text-white tracking-wide uppercase drop-shadow-[0_0_15px_rgba(0,245,155,0.4)]">
@@ -424,7 +468,7 @@ export default function AffiliateHubPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          {affiliateStats.map((item) => {
+          {displayAffiliateStats.map((item) => {
             const correspondingGame = games.find((g) => g.id === item.game_id);
 
             return (
@@ -497,10 +541,10 @@ export default function AffiliateHubPage() {
                     </button>
                   </div>
 
-                  {/* Unique Tracking Link with Copy Button */}
+                  {/* Unique Tracking Link with Copy & Test Buttons */}
                   <div className="space-y-1.5 mb-4">
                     <label className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold block">
-                      Seu Link de Divulgação Oficial:
+                      Seu Link de Divulgação Oficial (Rastreamento em Tempo Real):
                     </label>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-black/70 border border-white/10 rounded-xl px-3 py-2 text-xs text-zinc-300 font-mono truncate select-all">
@@ -527,6 +571,17 @@ export default function AffiliateHubPage() {
                           </>
                         )}
                       </button>
+
+                      <a
+                        href={item.referral_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap"
+                        title="Abrir em nova aba para testar contagem de cliques em tempo real"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Testar</span>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -678,9 +733,9 @@ export default function AffiliateHubPage() {
                   : "bg-dark-900 text-zinc-400 hover:text-white border border-white/5"
               }`}
             >
-              Todos ({affiliateConversions.length})
+              Todos ({allConversions.length})
             </button>
-            {affiliateStats.map((g) => (
+            {displayAffiliateStats.map((g) => (
               <button
                 key={g.game_id}
                 onClick={() => setSelectedGameFilter(g.game_id)}
@@ -867,18 +922,18 @@ export default function AffiliateHubPage() {
                       const gid = e.target.value;
                       setWithdrawGameId(gid);
                       if (gid === "all") {
-                        setWithdrawAmount(totalAffiliateBalance.toFixed(2));
+                        setWithdrawAmount(currentAvailableBalance.toFixed(2));
                       } else {
-                        const target = affiliateStats.find((s) => s.game_id === gid);
+                        const target = displayAffiliateStats.find((s) => s.game_id === gid);
                         setWithdrawAmount(target ? target.available_balance.toFixed(2) : "0.00");
                       }
                     }}
                     className="w-full p-2.5 rounded-xl bg-dark-900 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-400 cursor-pointer"
                   >
                     <option value="all">
-                      Saldo Consolidado (Todos os 4 Jogos) - Disponível: {formatCurrency(totalAffiliateBalance)}
+                      Saldo Consolidado (Todos os 4 Jogos) - Disponível: {formatCurrency(currentAvailableBalance)}
                     </option>
-                    {affiliateStats.map((g) => (
+                    {displayAffiliateStats.map((g) => (
                       <option key={g.game_id} value={g.game_id}>
                         {g.game_name} - Disponível: {formatCurrency(g.available_balance)}
                       </option>
@@ -921,8 +976,8 @@ export default function AffiliateHubPage() {
                       onClick={() => {
                         const maxVal =
                           withdrawGameId === "all"
-                            ? totalAffiliateBalance
-                            : affiliateStats.find((s) => s.game_id === withdrawGameId)?.available_balance || 0;
+                            ? currentAvailableBalance
+                            : displayAffiliateStats.find((s) => s.game_id === withdrawGameId)?.available_balance || 0;
                         setWithdrawAmount(maxVal.toFixed(2));
                       }}
                       className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-[11px] font-bold transition ml-auto cursor-pointer"
