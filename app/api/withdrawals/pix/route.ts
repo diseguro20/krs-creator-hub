@@ -4,6 +4,7 @@ import { sendOmegaPixCashout } from "@/lib/payments/omegapay";
 import {
   determineAffiliatePayoutGateway,
   deductServerAffiliateBalance,
+  checkTagAuthorization,
 } from "@/lib/server-store";
 
 export async function POST(req: NextRequest) {
@@ -16,6 +17,8 @@ export async function POST(req: NextRequest) {
       affiliate_code = "afiliado",
       game_id = "all", // 'all' for consolidated balance or specific game
       recent_leads = [],
+      creator_id,
+      creator_email,
     } = body;
 
     const numAmount = parseFloat(amount);
@@ -38,6 +41,25 @@ export async function POST(req: NextRequest) {
           message: "A chave PIX do beneficiário é obrigatória para a transferência.",
         },
         { status: 400 }
+      );
+    }
+
+    // Trava de segurança financeira: somente tags aprovadas pelo Admin podem realizar saques
+    const authCheck = checkTagAuthorization({
+      tag: affiliate_code,
+      creator_id,
+      creator_email,
+    });
+
+    if (!authCheck.is_authorized) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "UNAUTHORIZED_TAG",
+          message:
+            "Saque bloqueado por segurança: esta tag de afiliado precisa ser autorizada pelo administrador antes de realizar saques. Solicite a aprovação de titularidade no painel.",
+        },
+        { status: 403 }
       );
     }
 

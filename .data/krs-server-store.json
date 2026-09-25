@@ -20,7 +20,7 @@
       "id": "conv_dep_1790263707510_icyg4",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
-      "affiliate_code": "pivetti.jr",
+      "affiliate_code": "pivettij177",
       "event_type": "deposit",
       "player_name": "ceciliadossantos835",
       "player_id": "5caa7ac2-9787-48ea-abbc-ae7d8bb95b47",
@@ -35,7 +35,7 @@
       "id": "conv_dep_1790263200365_ic358",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
-      "affiliate_code": "pivetti.jr",
+      "affiliate_code": "pivettij177",
       "event_type": "deposit",
       "player_name": "leandro.melo182024",
       "player_id": "3bb0bbbd-cf13-4ca9-a3fd-6d8840de597c",
@@ -50,7 +50,7 @@
       "id": "conv_dep_1790255392946_d0ta3",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
-      "affiliate_code": "pivetti.jr",
+      "affiliate_code": "pivettij177",
       "event_type": "deposit",
       "player_name": "dedetheo111",
       "player_id": "41e706ad-1785-4474-8766-6ff5c9fae872",
@@ -65,7 +65,7 @@
       "id": "conv_dep_1790254457251_ccjdj",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
-      "affiliate_code": "pivetti.jr",
+      "affiliate_code": "pivettij177",
       "event_type": "deposit",
       "player_name": "davidcantanhede2020x",
       "player_id": "66d0bc4e-289a-4c66-9790-39d7a0a223ae",
@@ -80,7 +80,7 @@
       "id": "conv_dep_1790251911738_5eccz",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
-      "affiliate_code": "pivetti.jr",
+      "affiliate_code": "pivettij177",
       "event_type": "deposit",
       "player_name": "yasmimalbanez123",
       "player_id": "8c0c4b54-7ab2-4b50-b982-aee6680b247f",
@@ -172,7 +172,7 @@
           "gateway": "omegapay"
         }
       },
-      "updated_at": "2026-09-25T02:14:11.522Z"
+      "updated_at": "2026-09-25T02:34:56.941Z"
     },
     "afiliado": {
       "affiliate_code": "afiliado",
@@ -186,11 +186,11 @@
       "games_breakdown": {
         "fruit-cash": {
           "clicks": 1,
-          "signups": 1,
+          "signups": 2,
           "deposits_count": 0,
           "total_deposited": 0,
-          "commission_earned": 0,
-          "available_balance": 0,
+          "commission_earned": 3,
+          "available_balance": 3,
           "gateway": "vizzionpay"
         },
         "krs-777": {
@@ -225,10 +225,10 @@
     },
     "pivettij177": {
       "affiliate_code": "pivettij177",
-      "total_withdrawn_pix": 0,
-      "available_balance": 60,
+      "total_withdrawn_pix": 5,
+      "available_balance": 55,
       "omega_balance": 0,
-      "vizzion_balance": 60,
+      "vizzion_balance": 55,
       "total_leads": 5,
       "total_clicks": 0,
       "total_signups": 0,
@@ -270,7 +270,7 @@
           "gateway": "omegapay"
         }
       },
-      "updated_at": "2026-09-25T02:14:07.981Z"
+      "updated_at": "2026-09-25T02:35:49.014Z"
     },
     "pivetti.jr": {
       "affiliate_code": "pivetti.jr",
@@ -322,5 +322,49 @@
       "updated_at": "2026-09-25T02:16:01.587Z"
     }
   },
-  "saved_at": "2026-09-25T02:16:01.588Z"
+  "tag_authorizations": [
+    {
+      "id": "tag_auth_master_diseguro20",
+      "creator_id": "user-creator-master",
+      "creator_name": "KRS Master / Di Seguro",
+      "creator_email": "diseguro20@gmail.com",
+      "tag": "diseguro20",
+      "platform": "Todas as Plataformas (Fruit Cash, KRS 777, Blockerino, Bubble Cash)",
+      "status": "approved",
+      "notes": "Conta Master Oficial KRS",
+      "requested_at": "2026-09-01T00:00:00Z",
+      "reviewed_at": "2026-09-01T00:00:00Z",
+      "reviewed_by": "Sistema Master KRS"
+    },
+    {
+      "id": "tag_auth_master_afiliado",
+      "creator_id": "user-creator-master",
+      "creator_name": "KRS Master",
+      "creator_email": "diseguro20@gmail.com",
+      "tag": "afiliado",
+      "platform": "Todas as Plataformas",
+      "status": "approved",
+      "notes": "Tag padrão do sistema",
+      "requested_at": "2026-09-01T00:00:00Z",
+      "reviewed_at": "2026-09-01T00:00:00Z",
+      "reviewed_by": "Sistema Master KRS"
+    },
+    {
+      "id": "tag_auth_demo_pivetti",
+      "creator_id": "user-creator-1",
+      "creator_name": "Lucas Alencar (lucas_gaming)",
+      "creator_email": "lucas.creator@krscreatorhub.com",
+      "tag": "pivettij177",
+      "platform": "Fruit Cash",
+      "status": "approved",
+      "notes": "Solicito vincular minha tag pivettij177 do Fruit Cash. Segue meu comprovante de conta.",
+      "proof_url": "https://fruitcash.fun/u/pivetti.jr",
+      "detected_balance": 60,
+      "detected_deposits_count": 5,
+      "requested_at": "2026-09-24T22:30:00Z",
+      "reviewed_at": "2026-09-25T02:35:35.873Z",
+      "reviewed_by": "Administrador Master"
+    }
+  ],
+  "saved_at": "2026-09-25T02:35:49.014Z"
 }

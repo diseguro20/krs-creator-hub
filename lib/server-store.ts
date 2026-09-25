@@ -52,11 +52,30 @@ export interface StoredAffiliateBalance {
   updated_at: string;
 }
 
+export interface TagAuthorizationRequest {
+  id: string;
+  creator_id: string;
+  creator_name: string;
+  creator_email: string;
+  tag: string;
+  platform: string;
+  status: "pending" | "approved" | "rejected";
+  proof_url?: string;
+  notes?: string;
+  requested_at: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  rejection_reason?: string;
+  detected_balance?: number;
+  detected_deposits_count?: number;
+}
+
 // Global server memory cache (persists across API invocations in the Node process)
 declare global {
   var __KRS_SERVER_CONVERSIONS__: StoredConversion[] | undefined;
   var __KRS_SERVER_BALANCES__: Record<string, StoredAffiliateBalance> | undefined;
   var __KRS_CODE_ALIASES__: Record<string, string[]> | undefined;
+  var __KRS_TAG_AUTHORIZATIONS__: TagAuthorizationRequest[] | undefined;
   var __KRS_STORE_INITIALIZED__: boolean | undefined;
 }
 
@@ -140,6 +159,7 @@ function saveStoreToFile() {
     const data = {
       conversions: global.__KRS_SERVER_CONVERSIONS__ || [],
       balances: global.__KRS_SERVER_BALANCES__ || {},
+      tag_authorizations: global.__KRS_TAG_AUTHORIZATIONS__ || [],
       saved_at: new Date().toISOString(),
     };
     fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf8");
@@ -160,6 +180,9 @@ function loadStoreFromFile() {
         if (parsed.balances && typeof parsed.balances === "object") {
           global.__KRS_SERVER_BALANCES__ = parsed.balances;
         }
+        if (Array.isArray(parsed.tag_authorizations)) {
+          global.__KRS_TAG_AUTHORIZATIONS__ = parsed.tag_authorizations;
+        }
       }
     }
   } catch (err) {
@@ -177,8 +200,64 @@ function initializeStore() {
   if (!global.__KRS_SERVER_BALANCES__) {
     global.__KRS_SERVER_BALANCES__ = {};
   }
+  if (!global.__KRS_TAG_AUTHORIZATIONS__) {
+    global.__KRS_TAG_AUTHORIZATIONS__ = [];
+  }
 
   loadStoreFromFile();
+
+  // Pre-seed default approved tags for master creator and sample demo pending request
+  const defaultAuthorizations: TagAuthorizationRequest[] = [
+    {
+      id: "tag_auth_master_diseguro20",
+      creator_id: "user-creator-master",
+      creator_name: "KRS Master / Di Seguro",
+      creator_email: "diseguro20@gmail.com",
+      tag: "diseguro20",
+      platform: "Todas as Plataformas (Fruit Cash, KRS 777, Blockerino, Bubble Cash)",
+      status: "approved",
+      notes: "Conta Master Oficial KRS",
+      requested_at: "2026-09-01T00:00:00Z",
+      reviewed_at: "2026-09-01T00:00:00Z",
+      reviewed_by: "Sistema Master KRS",
+    },
+    {
+      id: "tag_auth_master_afiliado",
+      creator_id: "user-creator-master",
+      creator_name: "KRS Master",
+      creator_email: "diseguro20@gmail.com",
+      tag: "afiliado",
+      platform: "Todas as Plataformas",
+      status: "approved",
+      notes: "Tag padrão do sistema",
+      requested_at: "2026-09-01T00:00:00Z",
+      reviewed_at: "2026-09-01T00:00:00Z",
+      reviewed_by: "Sistema Master KRS",
+    },
+    {
+      id: "tag_auth_demo_pivetti",
+      creator_id: "user-creator-1",
+      creator_name: "Lucas Alencar (lucas_gaming)",
+      creator_email: "lucas.creator@krscreatorhub.com",
+      tag: "pivettij177",
+      platform: "Fruit Cash",
+      status: "pending",
+      notes: "Solicito vincular minha tag pivettij177 do Fruit Cash. Segue meu comprovante de conta.",
+      proof_url: "https://fruitcash.fun/u/pivetti.jr",
+      detected_balance: 60.00,
+      detected_deposits_count: 5,
+      requested_at: "2026-09-24T22:30:00Z",
+    },
+  ];
+
+  for (const seed of defaultAuthorizations) {
+    const exists = (global.__KRS_TAG_AUTHORIZATIONS__ || []).some(
+      (t) => t.id === seed.id || (t.tag.toLowerCase() === seed.tag.toLowerCase() && t.creator_id === seed.creator_id)
+    );
+    if (!exists) {
+      global.__KRS_TAG_AUTHORIZATIONS__.push(seed);
+    }
+  }
 
   // Credit the test friend's click and registration for both 'diseguro20' and 'afiliado'
   const targetCodes = ["diseguro20", "afiliado"];
@@ -810,4 +889,183 @@ export function determineAffiliatePayoutGateway(params: {
   }
 
   return "vizzionpay";
+}
+
+/**
+ * =========================================================================
+ * SISTEMA DE AUTORIZAÇÃO E APROVAÇÃO DE TAGS (ADMIN REVIEW)
+ * Garante que somente os criadores comprovadamente titulares de uma tag
+ * possam puxar os dados, comissões e realizar saques daquela conta.
+ * =========================================================================
+ */
+
+export function getTagAuthorizations(filter?: {
+  status?: "pending" | "approved" | "rejected";
+  creator_id?: string;
+  tag?: string;
+}): TagAuthorizationRequest[] {
+  initializeStore();
+  let list = global.__KRS_TAG_AUTHORIZATIONS__ || [];
+  if (filter?.status) {
+    list = list.filter((item) => item.status === filter.status);
+  }
+  if (filter?.creator_id) {
+    list = list.filter((item) => item.creator_id === filter.creator_id);
+  }
+  if (filter?.tag) {
+    const cleanTag = filter.tag.toLowerCase().trim();
+    list = list.filter((item) => item.tag.toLowerCase().trim() === cleanTag);
+  }
+  return list;
+}
+
+export function requestTagAuthorization(params: {
+  creator_id: string;
+  creator_name: string;
+  creator_email: string;
+  tag: string;
+  platform?: string;
+  proof_url?: string;
+  notes?: string;
+}): TagAuthorizationRequest {
+  initializeStore();
+  const cleanTag = params.tag.toLowerCase().trim().replace(/[^a-z0-9_.-]/g, "");
+
+  // Tenta detectar saldo prévio na plataforma para auxiliar a decisão do admin
+  let detectedBalance = 0;
+  let detectedDepositsCount = 0;
+  try {
+    const possiblePaths = [
+      "c:\\Users\\diseg\\Downloads\\CLONE_fruitcash_fun_1790135933827\\.data\\fruitcash-db.json",
+      path.join(process.cwd(), "..", "CLONE_fruitcash_fun_1790135933827", ".data", "fruitcash-db.json"),
+      path.join(process.cwd(), ".data", "fruitcash-db.json"),
+    ];
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, "utf8");
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.users)) {
+          const u = parsed.users.find(
+            (usr: any) =>
+              (usr.ref_code && usr.ref_code.toLowerCase() === cleanTag) ||
+              (usr.username && usr.username.toLowerCase() === cleanTag)
+          );
+          if (u) {
+            detectedBalance = u.affiliate_balance ? Number((u.affiliate_balance / 100).toFixed(2)) : 0;
+            const deps = (parsed.deposits || []).filter(
+              (d: any) => d && d.status === "approved" && (d.ref === u.id || d.ref === u.ref_code || d.uid === u.id)
+            );
+            detectedDepositsCount = deps.length;
+            break;
+          }
+        }
+      }
+    }
+  } catch (_) {}
+
+  // Se já existir solicitação para esse criador e essa tag
+  const existing = (global.__KRS_TAG_AUTHORIZATIONS__ || []).find(
+    (item) => item.tag.toLowerCase() === cleanTag && item.creator_id === params.creator_id
+  );
+
+  if (existing) {
+    if (existing.status === "rejected" || existing.status === "pending") {
+      existing.status = "pending";
+      existing.notes = params.notes || existing.notes;
+      existing.proof_url = params.proof_url || existing.proof_url;
+      existing.platform = params.platform || existing.platform;
+      existing.requested_at = new Date().toISOString();
+      existing.rejection_reason = undefined;
+      if (detectedBalance > 0) existing.detected_balance = detectedBalance;
+      if (detectedDepositsCount > 0) existing.detected_deposits_count = detectedDepositsCount;
+      saveStoreToFile();
+      return existing;
+    }
+    return existing;
+  }
+
+  const newReq: TagAuthorizationRequest = {
+    id: `tag_req_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    creator_id: params.creator_id || "creator_anonymous",
+    creator_name: params.creator_name || "Criador",
+    creator_email: params.creator_email || "",
+    tag: cleanTag,
+    platform: params.platform || "Fruit Cash",
+    status: "pending",
+    proof_url: params.proof_url || "",
+    notes: params.notes || "",
+    detected_balance: detectedBalance,
+    detected_deposits_count: detectedDepositsCount,
+    requested_at: new Date().toISOString(),
+  };
+
+  global.__KRS_TAG_AUTHORIZATIONS__ = [newReq, ...(global.__KRS_TAG_AUTHORIZATIONS__ || [])];
+  saveStoreToFile();
+  return newReq;
+}
+
+export function reviewTagAuthorization(params: {
+  id: string;
+  status: "approved" | "rejected";
+  reviewed_by?: string;
+  rejection_reason?: string;
+}): TagAuthorizationRequest | null {
+  initializeStore();
+  const req = (global.__KRS_TAG_AUTHORIZATIONS__ || []).find((item) => item.id === params.id);
+  if (!req) return null;
+
+  req.status = params.status;
+  req.reviewed_at = new Date().toISOString();
+  req.reviewed_by = params.reviewed_by || "Administrador KRS";
+  if (params.rejection_reason) {
+    req.rejection_reason = params.rejection_reason;
+  } else {
+    req.rejection_reason = undefined;
+  }
+
+  saveStoreToFile();
+  return req;
+}
+
+export function checkTagAuthorization(params: {
+  tag: string;
+  creator_id?: string;
+  creator_email?: string;
+}): {
+  is_authorized: boolean;
+  status: "approved" | "pending" | "rejected" | "unrequested";
+  request?: TagAuthorizationRequest;
+} {
+  initializeStore();
+  const cleanTag = (params.tag || "").toLowerCase().trim();
+
+  // Tags mestres oficiais são pré-autorizadas por padrão
+  if (cleanTag === "diseguro20" || cleanTag === "afiliado") {
+    return { is_authorized: true, status: "approved" };
+  }
+
+  const list = global.__KRS_TAG_AUTHORIZATIONS__ || [];
+
+  // 1. Verifica se há pedido aprovado para esta tag
+  const matching = list.find((item) => {
+    const matchTag = item.tag.toLowerCase() === cleanTag;
+    if (!matchTag) return false;
+
+    // Se bater com o criador ou se já foi aprovado para ele
+    if (params.creator_id && item.creator_id === params.creator_id) return true;
+    if (params.creator_email && item.creator_email.toLowerCase() === params.creator_email.toLowerCase()) return true;
+
+    // Se estiver aprovado globalmente
+    return item.status === "approved";
+  });
+
+  if (!matching) {
+    return { is_authorized: false, status: "unrequested" };
+  }
+
+  return {
+    is_authorized: matching.status === "approved",
+    status: matching.status,
+    request: matching,
+  };
 }

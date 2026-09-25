@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ShieldAlert,
+  ShieldCheck,
   LayoutDashboard,
   Users,
   Gamepad2,
@@ -24,6 +25,7 @@ import { useKrsStore } from "@/lib/store/useKrsStore";
 
 const ADMIN_LINKS = [
   { label: "Visão Geral", href: "/admin", icon: LayoutDashboard },
+  { label: "Aprovação de Tags", href: "/admin/tags", icon: ShieldCheck, badgeKey: "pendingTags" },
   { label: "Fila de Submissions", href: "/admin/submissions", icon: Inbox, badgeKey: "pendingSubs" },
   { label: "Creators & Influencers", href: "/admin/creators", icon: Users },
   { label: "Gestão de Jogos", href: "/admin/games", icon: Gamepad2 },
@@ -41,8 +43,24 @@ const ADMIN_LINKS = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { submissions } = useKrsStore();
+  const [pendingTagsCount, setPendingTagsCount] = React.useState(0);
 
   const pendingCount = submissions.filter((s) => s.status === "in_review").length;
+
+  React.useEffect(() => {
+    const fetchPendingTags = async () => {
+      try {
+        const res = await fetch("/api/admin/tag-authorizations?status=pending");
+        const data = await res.json();
+        if (data.success && typeof data.pending_count === "number") {
+          setPendingTagsCount(data.pending_count);
+        }
+      } catch (_) {}
+    };
+    fetchPendingTags();
+    const interval = setInterval(fetchPendingTags, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <aside className="hidden lg:flex w-64 flex-col justify-between border-r border-white/5 bg-dark-950 p-4 h-screen sticky top-0 overflow-y-auto">
@@ -91,6 +109,12 @@ export function AdminSidebar() {
                 {item.badgeKey === "pendingSubs" && pendingCount > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-dark-950 text-[10px] font-black">
                     {pendingCount}
+                  </span>
+                )}
+
+                {item.badgeKey === "pendingTags" && pendingTagsCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-dark-950 text-[10px] font-black animate-pulse">
+                    {pendingTagsCount}
                   </span>
                 )}
               </Link>

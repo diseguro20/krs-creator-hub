@@ -14,9 +14,13 @@ import {
   DollarSign,
   ExternalLink,
   ShieldCheck,
+  ShieldAlert,
   Sparkles,
   QrCode,
   CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Lock,
   ArrowRight,
   Filter,
   Play,
@@ -63,23 +67,52 @@ export default function AffiliateHubPage() {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [lastSyncTime, setLastSyncTime] = useState<string>("");
 
+  // Tag authorization & ownership approval states
+  const [tagAuthStatus, setTagAuthStatus] = useState<"approved" | "pending" | "rejected" | "unrequested">("approved");
+  const [tagAuthMessage, setTagAuthMessage] = useState<string>("");
+  const [tagAuthRequest, setTagAuthRequest] = useState<any | null>(null);
+
+  // Modal para solicitar aprovação de titularidade da tag
+  const [requestTagModalOpen, setRequestTagModalOpen] = useState(false);
+  const [requestTagPlatform, setRequestTagPlatform] = useState("Fruit Cash");
+  const [requestTagProofUrl, setRequestTagProofUrl] = useState("");
+  const [requestTagNotes, setRequestTagNotes] = useState("");
+  const [isSubmittingTagReq, setIsSubmittingTagReq] = useState(false);
+  const [tagReqFeedback, setTagReqFeedback] = useState<string | null>(null);
+
   const fetchSync = async () => {
     try {
       setIsSyncing(true);
       const tag = customTag || (currentUser as any)?.affiliate_code || currentUser?.username || "afiliado";
-      const res = await fetch(`/api/affiliates/sync?code=${encodeURIComponent(tag)}&_t=${Date.now()}`);
+      const creatorId = currentUser?.id || "user-creator-1";
+      const creatorEmail = currentUser?.email || "diseguro20@gmail.com";
+      const res = await fetch(
+        `/api/affiliates/sync?code=${encodeURIComponent(tag)}&creator_id=${encodeURIComponent(creatorId)}&creator_email=${encodeURIComponent(creatorEmail)}&_t=${Date.now()}`
+      );
       const data = await res.json();
       if (data.success) {
-        if (data.conversions && Array.isArray(data.conversions)) {
-          setLiveServerConversions(data.conversions);
-        }
-        if (data.server_balance) {
-          if (typeof data.server_balance.available_balance === "number") {
-            setLiveServerBalance(data.server_balance.available_balance);
+        const isAuth = data.authorized === true || data.auth_status === "approved";
+        setTagAuthStatus(isAuth ? "approved" : (data.auth_status || "unrequested"));
+        setTagAuthMessage(data.message || "");
+        setTagAuthRequest(data.request || null);
+
+        if (isAuth) {
+          if (data.conversions && Array.isArray(data.conversions)) {
+            setLiveServerConversions(data.conversions);
           }
-          if (data.server_balance.games_breakdown) {
-            setLiveServerBreakdown(data.server_balance.games_breakdown);
+          if (data.server_balance) {
+            if (typeof data.server_balance.available_balance === "number") {
+              setLiveServerBalance(data.server_balance.available_balance);
+            }
+            if (data.server_balance.games_breakdown) {
+              setLiveServerBreakdown(data.server_balance.games_breakdown);
+            }
           }
+        } else {
+          // If not authorized, keep private platform data masked
+          setLiveServerConversions([]);
+          setLiveServerBalance(0);
+          setLiveServerBreakdown({});
         }
         setLastSyncTime(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
       }
@@ -228,6 +261,13 @@ export default function AffiliateHubPage() {
       return;
     }
 
+    if (tagAuthStatus !== "approved") {
+      setErrorMessage(
+        "Saque bloqueado por segurança: Esta tag ainda não foi aprovada pelo administrador. Solicite a aprovação de titularidade antes de realizar saques."
+      );
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -241,6 +281,8 @@ export default function AffiliateHubPage() {
           pix_key_type: pixKeyType,
           affiliate_code: customTag || "afiliado",
           game_id: withdrawGameId,
+          creator_id: currentUser?.id || "user-creator-1",
+          creator_email: currentUser?.email || "diseguro20@gmail.com",
           recent_leads: (affiliateConversions || []).map((c) => ({
             game_slug: c.game_slug,
             game_id: c.game_id,
@@ -444,16 +486,16 @@ export default function AffiliateHubPage() {
             </p>
           </div>
 
-          {/* Interactive Tag Customizer */}
-          <div className="flex items-center gap-2 bg-[#08100c] border border-emerald-500/30 rounded-2xl p-1.5 sm:px-3">
+          {/* Interactive Tag Customizer & Ownership Verification */}
+          <div className="flex items-center gap-2 bg-[#08100c] border border-emerald-500/30 rounded-2xl p-1.5 sm:px-3 flex-wrap">
             <span className="text-[11px] text-zinc-400 font-bold whitespace-nowrap">Sua Tag:</span>
             <input
               type="text"
               value={customTag}
-              onChange={(e) => setCustomTag(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+              onChange={(e) => setCustomTag(e.target.value.toLowerCase().replace(/[^a-z0-9_.-]/g, ""))}
               onKeyDown={async (e) => {
                 if (e.key === "Enter") {
-                  const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+                  const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "");
                   if (!clean) return;
                   updateAffiliateCode(clean);
                   setTagSuccess(true);
@@ -466,7 +508,7 @@ export default function AffiliateHubPage() {
             />
             <button
               onClick={async () => {
-                const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "");
+                const clean = customTag.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "");
                 if (!clean) return;
                 updateAffiliateCode(clean);
                 setTagSuccess(true);
@@ -477,8 +519,119 @@ export default function AffiliateHubPage() {
             >
               {tagSuccess ? "Puxado! ✓" : "Atualizar"}
             </button>
+
+            {/* Authorization Status Badge */}
+            {tagAuthStatus === "approved" && (
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                <span className="hidden sm:inline">Tag Aprovada</span>
+                <span className="sm:hidden">✓</span>
+              </span>
+            )}
+
+            {tagAuthStatus === "pending" && (
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 text-[10px] font-bold border border-amber-500/30 flex items-center gap-1 animate-pulse">
+                <Clock className="w-3 h-3" />
+                <span>Em Análise</span>
+              </span>
+            )}
+
+            {tagAuthStatus === "rejected" && (
+              <button
+                onClick={() => setRequestTagModalOpen(true)}
+                className="px-2 py-0.5 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-400 text-[10px] font-bold border border-red-500/30 flex items-center gap-1 transition cursor-pointer"
+              >
+                <XCircle className="w-3 h-3" />
+                <span>Recusada (Reenviar)</span>
+              </button>
+            )}
+
+            {tagAuthStatus === "unrequested" && (
+              <button
+                onClick={() => setRequestTagModalOpen(true)}
+                className="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[10px] font-black uppercase border border-amber-500/40 flex items-center gap-1 transition cursor-pointer"
+              >
+                <Lock className="w-3 h-3" />
+                <span>Pedir Aprovação</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Security / Verification Banners */}
+        {tagAuthStatus === "pending" && (
+          <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 flex items-start gap-3 animate-in fade-in duration-200">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+              <Clock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="flex-1 text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <strong className="text-amber-400 font-bold text-sm">Titularidade da Tag em Análise pelo Administrador</strong>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">
+                  {customTag}
+                </span>
+              </div>
+              <p className="text-zinc-300 mt-1 leading-relaxed">
+                Você solicitou a vinculação desta tag. Para proteção financeira da comunidade de criadores, o administrador precisa validar a posse da conta na plataforma antes de liberar o saldo e saques.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {tagAuthStatus === "unrequested" && (
+          <div className="rounded-2xl bg-[#0e1610] border border-amber-500/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0 mt-0.5">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <strong className="text-white font-bold text-sm">Tag Requer Aprovação de Titularidade</strong>
+                  <span className="px-2 py-0.5 rounded-full bg-black border border-white/10 text-amber-400 font-mono text-[10px] font-bold">
+                    {customTag}
+                  </span>
+                </div>
+                <p className="text-zinc-400 mt-1">
+                  Não é possível acessar dados ou saldo de uma tag externa sem comprovação de que você é o titular da conta.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setRequestTagModalOpen(true)}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-black text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0 shadow-lg shadow-amber-500/20 flex items-center justify-center gap-1.5"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Pedir Aprovação desta Tag</span>
+            </button>
+          </div>
+        )}
+
+        {tagAuthStatus === "rejected" && (
+          <div className="rounded-2xl bg-red-500/10 border border-red-500/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-red-500/20 text-red-400 shrink-0 mt-0.5">
+                <XCircle className="w-5 h-5" />
+              </div>
+              <div className="text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <strong className="text-red-400 font-bold text-sm">Solicitação de Tag Recusada pelo Administrador</strong>
+                  <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-mono text-[10px] font-bold">
+                    {customTag}
+                  </span>
+                </div>
+                <p className="text-zinc-300 mt-1">
+                  {tagAuthMessage || "A titularidade desta conta não pôde ser confirmada pelo administrador."}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setRequestTagModalOpen(true)}
+              className="px-4 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white font-bold text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer whitespace-nowrap shrink-0 shadow-lg shadow-red-500/20"
+            >
+              Reenviar Comprovação
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {displayAffiliateStats.map((item) => {
@@ -1071,6 +1224,138 @@ export default function AffiliateHubPage() {
               </form>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Modal: Solicitar Vinculação e Comprovação de Tag */}
+      {requestTagModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setIsSubmittingTagReq(true);
+              setTagReqFeedback(null);
+              try {
+                const res = await fetch("/api/affiliates/tag-authorizations/request", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    tag: customTag,
+                    platform: requestTagPlatform,
+                    proof_url: requestTagProofUrl,
+                    notes: requestTagNotes,
+                    creator_id: currentUser?.id || "user-creator-1",
+                    creator_name: currentUser?.name || currentUser?.username || "Criador KRS",
+                    creator_email: currentUser?.email || "diseguro20@gmail.com",
+                  }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                  setTagReqFeedback("Solicitação enviada com sucesso! O administrador já pode aprovar no painel.");
+                  await fetchSync();
+                  setTimeout(() => {
+                    setRequestTagModalOpen(false);
+                    setTagReqFeedback(null);
+                  }, 1800);
+                } else {
+                  alert(data.message || "Erro ao enviar solicitação.");
+                }
+              } catch (err: any) {
+                alert("Falha na conexão ao enviar pedido.");
+              } finally {
+                setIsSubmittingTagReq(false);
+              }
+            }}
+            className="w-full max-w-lg rounded-3xl bg-dark-950 border border-amber-500/40 p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center gap-3 text-amber-400">
+              <div className="p-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/30">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-white">Solicitar Aprovação de Titularidade</h3>
+                <p className="text-xs text-zinc-400">Comprovação necessária para puxar saldos e habilitar saques</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed">
+              Para proteger as comissões e evitar que outras pessoas usem sua conta, informe os detalhes abaixo para que o administrador aprove seu vínculo.
+            </p>
+
+            {tagReqFeedback && (
+              <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{tagReqFeedback}</span>
+              </div>
+            )}
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-zinc-400 font-semibold mb-1">Tag Solicitada</label>
+                <input
+                  type="text"
+                  readOnly
+                  value={customTag}
+                  className="w-full rounded-xl bg-black/60 border border-white/10 p-2.5 text-amber-400 font-mono font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-semibold mb-1">Plataforma do Jogo *</label>
+                <select
+                  value={requestTagPlatform}
+                  onChange={(e) => setRequestTagPlatform(e.target.value)}
+                  className="w-full rounded-xl bg-dark-900 border border-white/10 p-2.5 text-white focus:outline-none focus:border-amber-400/50"
+                >
+                  <option value="Fruit Cash">Fruit Cash</option>
+                  <option value="KRS 777 (Casino Online)">KRS 777 (Casino Online)</option>
+                  <option value="Blockerino">Blockerino</option>
+                  <option value="Bubble Cash">Bubble Cash</option>
+                  <option value="Todas as Plataformas">Todas as Plataformas</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-semibold mb-1">Link do seu perfil / print de comprovação (Opcional)</label>
+                <input
+                  type="url"
+                  placeholder="https://exemplo.com/print-do-meu-perfil.png"
+                  value={requestTagProofUrl}
+                  onChange={(e) => setRequestTagProofUrl(e.target.value)}
+                  className="w-full rounded-xl bg-dark-900 border border-white/10 p-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50"
+                />
+              </div>
+
+              <div>
+                <label className="block text-zinc-400 font-semibold mb-1">Mensagem / Justificativa de Titularidade *</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Ex: Esta tag pivetti.jr pertence à minha conta cadastrada no Fruit Cash com o email pivetti.jr@icloud.com..."
+                  value={requestTagNotes}
+                  onChange={(e) => setRequestTagNotes(e.target.value)}
+                  className="w-full rounded-xl bg-dark-900 border border-white/10 p-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400/50 resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/5">
+              <button
+                type="button"
+                onClick={() => setRequestTagModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingTagReq}
+                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-black text-xs uppercase tracking-wider transition active:scale-95 cursor-pointer shadow-lg shadow-amber-500/20 disabled:opacity-50"
+              >
+                {isSubmittingTagReq ? "Enviando..." : "Enviar Pedido ao Admin"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
