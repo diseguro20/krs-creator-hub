@@ -1038,25 +1038,70 @@ export function checkTagAuthorization(params: {
 } {
   initializeStore();
   const cleanTag = (params.tag || "").toLowerCase().trim();
+  const cEmail = (params.creator_email || "").toLowerCase().trim();
+  const cId = (params.creator_id || "").toLowerCase().trim();
 
-  // Tags mestres oficiais são pré-autorizadas por padrão
-  if (cleanTag === "diseguro20" || cleanTag === "afiliado") {
-    return { is_authorized: true, status: "approved" };
+  if (!cleanTag) {
+    return { is_authorized: false, status: "unrequested" };
+  }
+
+  // 1. SEGURANÇA E TITULARIDADE EXCLUSIVA DA TAG MESTRE 'diseguro20':
+  // A tag 'diseguro20' pertence UNICAMENTE a Di Seguro (diseguro20@gmail.com / user-admin-1 / user-creator-master).
+  // NINGUÉM MAIS tem permissão de ver o saldo, ver os amigos ou sacar usando a tag 'diseguro20'.
+  const isDiSeguroMaster =
+    cEmail === "diseguro20@gmail.com" ||
+    cEmail.startsWith("diseguro") ||
+    cId === "user-admin-1" ||
+    cId === "user-creator-master" ||
+    cId.startsWith("diseguro");
+
+  if (cleanTag === "diseguro20") {
+    if (isDiSeguroMaster) {
+      return { is_authorized: true, status: "approved" };
+    }
+    // Qualquer outra pessoa que tentar acessar ou digitar 'diseguro20' é BLOQUEADA!
+    const list = global.__KRS_TAG_AUTHORIZATIONS__ || [];
+    const userReq = list.find(
+      (item) =>
+        item.tag.toLowerCase() === "diseguro20" &&
+        ((cId && item.creator_id.toLowerCase() === cId) ||
+          (cEmail && item.creator_email.toLowerCase() === cEmail))
+    );
+    return {
+      is_authorized: false,
+      status: userReq ? userReq.status : "unrequested",
+      request: userReq,
+    };
+  }
+
+  // 2. Tag padrão genérica 'afiliado':
+  if (cleanTag === "afiliado") {
+    const isAfiliadoUser =
+      cEmail === "afiliado@krscreatorhub.com" || cId === "user-creator-1" || isDiSeguroMaster;
+    if (isAfiliadoUser) {
+      return { is_authorized: true, status: "approved" };
+    }
+  }
+
+  // 3. REGRA GERAL DE SEGURANÇA E ISOLAMENTO PESSOAL:
+  // Cada tag aprovada pertence RIGOROSAMENTE ao criador que a solicitou e foi aprovado pelo Admin.
+  // Uma aprovação para o "Criador A" JAMAIS dá acesso ao "Criador B"!
+  // Se nenhum criador estiver autenticado, o acesso a dados privados é totalmente bloqueado.
+  if (!cId && !cEmail) {
+    return { is_authorized: false, status: "unrequested" };
   }
 
   const list = global.__KRS_TAG_AUTHORIZATIONS__ || [];
-
-  // 1. Verifica se há pedido aprovado para esta tag
   const matching = list.find((item) => {
     const matchTag = item.tag.toLowerCase() === cleanTag;
     if (!matchTag) return false;
 
-    // Se bater com o criador ou se já foi aprovado para ele
-    if (params.creator_id && item.creator_id === params.creator_id) return true;
-    if (params.creator_email && item.creator_email.toLowerCase() === params.creator_email.toLowerCase()) return true;
+    // A autorização DEVE pertencer a este criador específico (por ID ou email)
+    const matchCreator =
+      (cId && item.creator_id.toLowerCase() === cId) ||
+      (cEmail && item.creator_email.toLowerCase() === cEmail);
 
-    // Se estiver aprovado globalmente
-    return item.status === "approved";
+    return matchCreator;
   });
 
   if (!matching) {

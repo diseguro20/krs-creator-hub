@@ -84,8 +84,8 @@ export default function AffiliateHubPage() {
     try {
       setIsSyncing(true);
       const tag = customTag || (currentUser as any)?.affiliate_code || currentUser?.username || "afiliado";
-      const creatorId = currentUser?.id || "user-creator-1";
-      const creatorEmail = currentUser?.email || "diseguro20@gmail.com";
+      const creatorId = currentUser?.id || "";
+      const creatorEmail = currentUser?.email || "";
       const res = await fetch(
         `/api/affiliates/sync?code=${encodeURIComponent(tag)}&creator_id=${encodeURIComponent(creatorId)}&creator_email=${encodeURIComponent(creatorEmail)}&_t=${Date.now()}`
       );
@@ -281,8 +281,8 @@ export default function AffiliateHubPage() {
           pix_key_type: pixKeyType,
           affiliate_code: customTag || "afiliado",
           game_id: withdrawGameId,
-          creator_id: currentUser?.id || "user-creator-1",
-          creator_email: currentUser?.email || "diseguro20@gmail.com",
+          creator_id: currentUser?.id || "",
+          creator_email: currentUser?.email || "",
           recent_leads: (affiliateConversions || []).map((c) => ({
             game_slug: c.game_slug,
             game_id: c.game_id,
@@ -1244,9 +1244,9 @@ export default function AffiliateHubPage() {
                     platform: requestTagPlatform,
                     proof_url: requestTagProofUrl,
                     notes: requestTagNotes,
-                    creator_id: currentUser?.id || "user-creator-1",
-                    creator_name: currentUser?.name || currentUser?.username || "Criador KRS",
-                    creator_email: currentUser?.email || "diseguro20@gmail.com",
+                    creator_id: currentUser?.id || "unregistered_creator",
+                    creator_name: currentUser?.name || currentUser?.username || "Criador",
+                    creator_email: currentUser?.email || "",
                   }),
                 });
                 const data = await res.json();
