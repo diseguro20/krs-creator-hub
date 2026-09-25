@@ -1,6 +1,36 @@
 {
   "conversions": [
     {
+      "id": "conv_1790320879046_qdo6u",
+      "game_slug": "bubbles-cash",
+      "game_name": "Bubble Cash",
+      "affiliate_code": "diseguro20",
+      "event_type": "deposit",
+      "player_name": "Jogador Bubble 1",
+      "player_id": "usr_bubble_001",
+      "amount_deposited": 50,
+      "commission_amount": 10,
+      "transaction_id": "tx_bubble_test_01",
+      "payment_gateway": "omegapay",
+      "status": "available_for_pix_withdrawal",
+      "received_at": "2026-09-25T07:21:19.046Z"
+    },
+    {
+      "id": "conv_1790320879031_14swc",
+      "game_slug": "krs-777",
+      "game_name": "KRS 777 Casino",
+      "affiliate_code": "diseguro20",
+      "event_type": "deposit",
+      "player_name": "Jogador Cassino 1",
+      "player_id": "usr_krs_001",
+      "amount_deposited": 100,
+      "commission_amount": 30,
+      "transaction_id": "tx_krs_777_test_01",
+      "payment_gateway": "vizzionpay",
+      "status": "available_for_pix_withdrawal",
+      "received_at": "2026-09-25T07:21:19.031Z"
+    },
+    {
       "id": "conv_signup_00008c06-1573-463e-83cf-b30ac6e203c2_diseguro20",
       "game_slug": "fruit-cash",
       "game_name": "Fruit Cash",
@@ -128,11 +158,11 @@
     "diseguro20": {
       "affiliate_code": "diseguro20",
       "total_withdrawn_pix": 0,
-      "available_balance": 3,
-      "omega_balance": 0,
-      "vizzion_balance": 3,
-      "total_leads": 2,
-      "total_clicks": 1,
+      "available_balance": 28,
+      "omega_balance": 10,
+      "vizzion_balance": 18,
+      "total_leads": 4,
+      "total_clicks": 4,
       "total_signups": 2,
       "games_breakdown": {
         "fruit-cash": {
@@ -145,16 +175,16 @@
           "gateway": "vizzionpay"
         },
         "krs-777": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
-          "deposits_count": 0,
-          "total_deposited": 0,
-          "commission_earned": 0,
-          "available_balance": 0,
+          "deposits_count": 1,
+          "total_deposited": 100,
+          "commission_earned": 30,
+          "available_balance": 15,
           "gateway": "vizzionpay"
         },
         "blockerino": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
           "deposits_count": 0,
           "total_deposited": 0,
@@ -163,26 +193,26 @@
           "gateway": "omegapay"
         },
         "bubbles-cash": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
-          "deposits_count": 0,
-          "total_deposited": 0,
-          "commission_earned": 0,
-          "available_balance": 0,
+          "deposits_count": 1,
+          "total_deposited": 50,
+          "commission_earned": 10,
+          "available_balance": 10,
           "gateway": "omegapay"
         }
       },
-      "updated_at": "2026-09-25T02:59:25.471Z"
+      "updated_at": "2026-09-25T07:24:27.963Z"
     },
     "afiliado": {
       "affiliate_code": "afiliado",
       "total_withdrawn_pix": 0,
-      "available_balance": 0,
-      "omega_balance": 0,
-      "vizzion_balance": 0,
-      "total_leads": 1,
-      "total_clicks": 1,
-      "total_signups": 1,
+      "available_balance": 43,
+      "omega_balance": 10,
+      "vizzion_balance": 33,
+      "total_leads": 4,
+      "total_clicks": 4,
+      "total_signups": 2,
       "games_breakdown": {
         "fruit-cash": {
           "clicks": 1,
@@ -194,16 +224,16 @@
           "gateway": "vizzionpay"
         },
         "krs-777": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
-          "deposits_count": 0,
-          "total_deposited": 0,
-          "commission_earned": 0,
-          "available_balance": 0,
+          "deposits_count": 1,
+          "total_deposited": 100,
+          "commission_earned": 30,
+          "available_balance": 15,
           "gateway": "vizzionpay"
         },
         "blockerino": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
           "deposits_count": 0,
           "total_deposited": 0,
@@ -212,16 +242,16 @@
           "gateway": "omegapay"
         },
         "bubbles-cash": {
-          "clicks": 0,
+          "clicks": 1,
           "signups": 0,
-          "deposits_count": 0,
-          "total_deposited": 0,
-          "commission_earned": 0,
-          "available_balance": 0,
+          "deposits_count": 1,
+          "total_deposited": 50,
+          "commission_earned": 10,
+          "available_balance": 10,
           "gateway": "omegapay"
         }
       },
-      "updated_at": "2026-09-25T01:33:44.027Z"
+      "updated_at": "2026-09-25T07:21:19.047Z"
     },
     "pivettij177": {
       "affiliate_code": "pivettij177",
@@ -366,5 +396,5 @@
       "reviewed_by": "Administrador Master"
     }
   ],
-  "saved_at": "2026-09-25T02:59:25.471Z"
+  "saved_at": "2026-09-25T07:24:27.963Z"
 }

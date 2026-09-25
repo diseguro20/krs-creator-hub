@@ -131,13 +131,19 @@ export default function AffiliateHubPage() {
 
   // Merge local affiliate stats with live server breakdown
   const displayAffiliateStats = affiliateStats.map((item) => {
-    const serverGame = liveServerBreakdown[item.game_slug] || liveServerBreakdown[item.game_id] || null;
-    const clicks = serverGame ? Math.max(item.clicks || 0, serverGame.clicks || 0) : (item.clicks || 0);
-    const signups = serverGame ? Math.max(item.signups || 0, serverGame.signups || 0) : (item.signups || 0);
-    const deposits_count = serverGame ? Math.max(item.deposits_count || 0, serverGame.deposits_count || 0) : (item.deposits_count || 0);
-    const total_deposited = serverGame ? Math.max(item.total_deposited || 0, serverGame.total_deposited || 0) : (item.total_deposited || 0);
-    const commission_earned = serverGame ? Math.max(item.commission_earned || 0, serverGame.commission_earned || 0) : (item.commission_earned || 0);
-    const available_balance = serverGame ? Math.max(item.available_balance || 0, serverGame.available_balance || 0) : (item.available_balance || 0);
+    const serverGame =
+      liveServerBreakdown[item.game_slug] ||
+      liveServerBreakdown[item.game_id] ||
+      (item.game_slug === "bubbles-cash" ? liveServerBreakdown["bubble-cash"] : null) ||
+      (item.game_slug === "bubble-cash" ? liveServerBreakdown["bubbles-cash"] : null) ||
+      null;
+
+    const clicks = serverGame && typeof serverGame.clicks === "number" ? serverGame.clicks : (item.clicks || 0);
+    const signups = serverGame && typeof serverGame.signups === "number" ? serverGame.signups : (item.signups || 0);
+    const deposits_count = serverGame && typeof serverGame.deposits_count === "number" ? serverGame.deposits_count : (item.deposits_count || 0);
+    const total_deposited = serverGame && typeof serverGame.total_deposited === "number" ? serverGame.total_deposited : (item.total_deposited || 0);
+    const commission_earned = serverGame && typeof serverGame.commission_earned === "number" ? serverGame.commission_earned : (item.commission_earned || 0);
+    const available_balance = serverGame && typeof serverGame.available_balance === "number" ? serverGame.available_balance : (item.available_balance || 0);
 
     const origin = typeof window !== "undefined" ? window.location.origin : "https://krs-creator-hub.vercel.app";
     const trackedUrl = `${origin}/r/${item.game_slug}?ref=${encodeURIComponent(customTag || "afiliado")}`;
@@ -154,7 +160,7 @@ export default function AffiliateHubPage() {
     };
   });
 
-  // Total consolidated stats
+  // Total consolidated stats across all 4 games
   const totalClicks = displayAffiliateStats.reduce((acc, g) => acc + g.clicks, 0);
   const totalSignups = displayAffiliateStats.reduce((acc, g) => acc + g.signups, 0);
   const totalDeposited = displayAffiliateStats.reduce((acc, g) => acc + g.total_deposited, 0);
@@ -179,17 +185,22 @@ export default function AffiliateHubPage() {
   ];
 
   const currentAvailableBalance =
-    liveServerBalance !== null && liveServerBalance > totalAffiliateBalance
+    liveServerBalance !== null
       ? liveServerBalance
       : totalAffiliateBalance;
 
-  // Filter conversions
-  const filteredConversions =
-    selectedGameFilter === "all"
-      ? allConversions
-      : allConversions.filter(
-          (c) => c.game_id === selectedGameFilter || c.game_slug === selectedGameFilter
-        );
+  // Filter conversions with support for slug and ID prefixes
+  const matchesGame = (filter: string, convGameId?: string, convGameSlug?: string) => {
+    if (filter === "all") return true;
+    const f = filter.replace(/^game-/, "").toLowerCase();
+    const id = (convGameId || "").replace(/^game-/, "").toLowerCase();
+    const slug = (convGameSlug || "").replace(/^game-/, "").toLowerCase();
+    return f === id || f === slug || (f.includes("bubble") && (slug.includes("bubble") || id.includes("bubble")));
+  };
+
+  const filteredConversions = allConversions.filter((c) =>
+    matchesGame(selectedGameFilter, c.game_id, c.game_slug)
+  );
 
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawGameId, setWithdrawGameId] = useState<string>("all");
@@ -252,7 +263,7 @@ export default function AffiliateHubPage() {
     const maxAvailable =
       withdrawGameId === "all"
         ? currentAvailableBalance
-        : affiliateStats.find((g) => g.game_id === withdrawGameId)?.available_balance || 0;
+        : displayAffiliateStats.find((g) => g.game_id === withdrawGameId || g.game_slug === withdrawGameId)?.available_balance || 0;
 
     if (amountNum > maxAvailable) {
       setErrorMessage(

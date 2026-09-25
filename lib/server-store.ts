@@ -365,6 +365,72 @@ export function resolveLeadGateway(params: {
 }
 
 /**
+ * Recalcula matematicamente todos os totais do afiliado somando os 4 jogos:
+ * 1. Fruit Cash
+ * 2. KRS 777 Casino
+ * 3. Blockerino
+ * 4. Bubble Cash
+ * Garante que nenhum clique, cadastro, depósito ou centavo de comissão seja perdido ou sobreposto.
+ */
+export function recalculateAffiliateTotals(bal: StoredAffiliateBalance): StoredAffiliateBalance {
+  const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash"];
+
+  if (!bal.games_breakdown) {
+    bal.games_breakdown = {};
+  }
+
+  for (const s of standardSlugs) {
+    if (!bal.games_breakdown[s]) {
+      bal.games_breakdown[s] = createDefaultGameMetrics(s);
+    }
+  }
+
+  let totalClicks = 0;
+  let totalSignups = 0;
+  let totalDepositsCount = 0;
+  let totalDeposited = 0;
+  let totalCommissionEarned = 0;
+  let totalGameAvailable = 0;
+  let vizzionBal = 0;
+  let omegaBal = 0;
+
+  for (const [slug, m] of Object.entries(bal.games_breakdown)) {
+    const clicks = Number(m.clicks || 0);
+    const signups = Number(m.signups || 0);
+    const depsCount = Number(m.deposits_count || 0);
+    const depAmt = Number(m.total_deposited || 0);
+    const commAmt = Number(m.commission_earned || 0);
+    const gameAvail = Number(m.available_balance || 0);
+
+    totalClicks += clicks;
+    totalSignups += signups;
+    totalDepositsCount += depsCount;
+    totalDeposited = Number((totalDeposited + depAmt).toFixed(2));
+    totalCommissionEarned = Number((totalCommissionEarned + commAmt).toFixed(2));
+    totalGameAvailable = Number((totalGameAvailable + gameAvail).toFixed(2));
+
+    const norm = normalizeGameSlug(slug);
+    if (m.gateway === "omegapay" || norm === "blockerino" || norm === "bubbles-cash") {
+      omegaBal = Number((omegaBal + gameAvail).toFixed(2));
+    } else {
+      vizzionBal = Number((vizzionBal + gameAvail).toFixed(2));
+    }
+  }
+
+  bal.total_clicks = totalClicks;
+  bal.total_signups = totalSignups;
+  bal.total_leads = totalSignups + totalDepositsCount;
+
+  // Saldo real disponível para saque consolidado (soma exata dos saldos líquidos dos 4 jogos)
+  bal.available_balance = Number(Math.max(0, totalGameAvailable).toFixed(2));
+  bal.vizzion_balance = Number(Math.max(0, vizzionBal).toFixed(2));
+  bal.omega_balance = Number(Math.max(0, omegaBal).toFixed(2));
+  bal.updated_at = new Date().toISOString();
+
+  return bal;
+}
+
+/**
  * Registra um clique em tempo real para um afiliado e jogo específicos
  */
 export function recordServerClick(affiliateCode: string, gameSlug: string): StoredAffiliateBalance {
@@ -372,32 +438,32 @@ export function recordServerClick(affiliateCode: string, gameSlug: string): Stor
   const slug = normalizeGameSlug(gameSlug);
 
   const balance = getServerAffiliateBalance(code);
-  balance.total_clicks = (balance.total_clicks || 0) + 1;
 
   if (!balance.games_breakdown[slug]) {
     balance.games_breakdown[slug] = createDefaultGameMetrics(slug);
   }
 
   balance.games_breakdown[slug].clicks = (balance.games_breakdown[slug].clicks || 0) + 1;
-  balance.updated_at = new Date().toISOString();
+
+  // Recalcula matematicamente a soma de todos os 4 jogos
+  recalculateAffiliateTotals(balance);
 
   if (!global.__KRS_SERVER_BALANCES__) {
     global.__KRS_SERVER_BALANCES__ = {};
   }
   global.__KRS_SERVER_BALANCES__[code] = balance;
 
-  // Also if tracking for 'diseguro20' or 'afiliado', keep the alias updated
+  // Mantém espelho atualizado para 'diseguro20' / 'afiliado'
   if (code === "diseguro20" && global.__KRS_SERVER_BALANCES__["afiliado"]) {
-    global.__KRS_SERVER_BALANCES__["afiliado"].total_clicks = Math.max(
-      global.__KRS_SERVER_BALANCES__["afiliado"].total_clicks || 0,
-      balance.total_clicks
-    );
-    if (global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug]) {
-      global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug].clicks = Math.max(
-        global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug].clicks || 0,
-        balance.games_breakdown[slug].clicks
-      );
+    const afBal = global.__KRS_SERVER_BALANCES__["afiliado"];
+    if (!afBal.games_breakdown[slug]) {
+      afBal.games_breakdown[slug] = createDefaultGameMetrics(slug);
     }
+    afBal.games_breakdown[slug].clicks = Math.max(
+      afBal.games_breakdown[slug].clicks || 0,
+      balance.games_breakdown[slug].clicks
+    );
+    recalculateAffiliateTotals(afBal);
   }
 
   saveStoreToFile();
@@ -405,17 +471,28 @@ export function recordServerClick(affiliateCode: string, gameSlug: string): Stor
 }
 
 /**
- * Registra uma conversão (cadastro ou depósito) recebida via webhook
+ * Registra uma conversão (cadastro ou depósito) recebida via webhook com idempotência e precisão matemática
  */
 export function recordServerConversion(conversion: StoredConversion): StoredAffiliateBalance {
   const code = conversion.affiliate_code.toLowerCase().trim();
   const slug = normalizeGameSlug(conversion.game_slug);
 
-  // 1. Add to conversion list (most recent first, avoid duplicated id)
-  const existing = (global.__KRS_SERVER_CONVERSIONS__ || []).filter((c) => c.id !== conversion.id);
-  global.__KRS_SERVER_CONVERSIONS__ = [conversion, ...existing].slice(0, 200);
+  // 0. Proteção de idempotência: transações já gravadas não duplicam métricas nem saldos
+  if (conversion.transaction_id) {
+    const isDuplicate = (global.__KRS_SERVER_CONVERSIONS__ || []).some(
+      (c) => c.transaction_id && c.transaction_id === conversion.transaction_id
+    );
+    if (isDuplicate) {
+      console.log(`[CONVERSÃO IGNORADA - IDEMPOTÊNCIA] Transação '${conversion.transaction_id}' já contabilizada.`);
+      return getServerAffiliateBalance(code);
+    }
+  }
 
-  // 2. Update balance for this affiliate
+  // 1. Adiciona ao histórico de conversões (mais recente no topo)
+  const existing = (global.__KRS_SERVER_CONVERSIONS__ || []).filter((c) => c.id !== conversion.id);
+  global.__KRS_SERVER_CONVERSIONS__ = [conversion, ...existing].slice(0, 300);
+
+  // 2. Atualiza os dados do jogo específico no breakdown do afiliado
   const current = getServerAffiliateBalance(code);
 
   if (!current.games_breakdown[slug]) {
@@ -423,57 +500,71 @@ export function recordServerConversion(conversion: StoredConversion): StoredAffi
   }
 
   if (conversion.event_type === "signup") {
-    current.total_signups = (current.total_signups || 0) + 1;
     current.games_breakdown[slug].signups = (current.games_breakdown[slug].signups || 0) + 1;
 
     // Se houver comissão por cadastro (ex: CPA)
     if (conversion.commission_amount > 0) {
-      current.available_balance += conversion.commission_amount;
-      current.games_breakdown[slug].commission_earned += conversion.commission_amount;
-      current.games_breakdown[slug].available_balance += conversion.commission_amount;
-
-      if (conversion.payment_gateway === "omegapay") {
-        current.omega_balance = (current.omega_balance || 0) + conversion.commission_amount;
-      } else {
-        current.vizzion_balance = (current.vizzion_balance || 0) + conversion.commission_amount;
-      }
+      current.games_breakdown[slug].commission_earned = Number(
+        ((current.games_breakdown[slug].commission_earned || 0) + conversion.commission_amount).toFixed(2)
+      );
+      current.games_breakdown[slug].available_balance = Number(
+        ((current.games_breakdown[slug].available_balance || 0) + conversion.commission_amount).toFixed(2)
+      );
     }
   } else {
-    // Depósito / Torneio
+    // Depósito / Torneio / Compra de fichas
     current.games_breakdown[slug].deposits_count = (current.games_breakdown[slug].deposits_count || 0) + 1;
-    current.games_breakdown[slug].total_deposited = (current.games_breakdown[slug].total_deposited || 0) + conversion.amount_deposited;
-    current.games_breakdown[slug].commission_earned = (current.games_breakdown[slug].commission_earned || 0) + conversion.commission_amount;
-    current.games_breakdown[slug].available_balance = (current.games_breakdown[slug].available_balance || 0) + conversion.commission_amount;
-    current.available_balance += conversion.commission_amount;
-
-    if (conversion.payment_gateway === "omegapay") {
-      current.omega_balance = (current.omega_balance || 0) + conversion.commission_amount;
-    } else {
-      current.vizzion_balance = (current.vizzion_balance || 0) + conversion.commission_amount;
-    }
+    current.games_breakdown[slug].total_deposited = Number(
+      ((current.games_breakdown[slug].total_deposited || 0) + conversion.amount_deposited).toFixed(2)
+    );
+    current.games_breakdown[slug].commission_earned = Number(
+      ((current.games_breakdown[slug].commission_earned || 0) + conversion.commission_amount).toFixed(2)
+    );
+    current.games_breakdown[slug].available_balance = Number(
+      ((current.games_breakdown[slug].available_balance || 0) + conversion.commission_amount).toFixed(2)
+    );
   }
 
-  current.total_leads = (current.total_leads || 0) + 1;
   current.games_breakdown[slug].gateway = conversion.payment_gateway;
-  current.updated_at = new Date().toISOString();
+
+  // 3. Recalcula matematicamente o saldo total, leads totais e gateways
+  recalculateAffiliateTotals(current);
 
   if (!global.__KRS_SERVER_BALANCES__) {
     global.__KRS_SERVER_BALANCES__ = {};
   }
   global.__KRS_SERVER_BALANCES__[code] = current;
 
-  // Mirror to alias if 'diseguro20'
+  // Mantém espelho atualizado se 'diseguro20'
   if (code === "diseguro20" && global.__KRS_SERVER_BALANCES__["afiliado"]) {
-    global.__KRS_SERVER_BALANCES__["afiliado"].total_signups = Math.max(
-      global.__KRS_SERVER_BALANCES__["afiliado"].total_signups || 0,
-      current.total_signups
-    );
-    if (global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug]) {
-      global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug].signups = Math.max(
-        global.__KRS_SERVER_BALANCES__["afiliado"].games_breakdown[slug].signups || 0,
+    const afBal = global.__KRS_SERVER_BALANCES__["afiliado"];
+    if (!afBal.games_breakdown[slug]) {
+      afBal.games_breakdown[slug] = createDefaultGameMetrics(slug);
+    }
+    if (conversion.event_type === "signup") {
+      afBal.games_breakdown[slug].signups = Math.max(
+        afBal.games_breakdown[slug].signups || 0,
         current.games_breakdown[slug].signups
       );
+    } else {
+      afBal.games_breakdown[slug].deposits_count = Math.max(
+        afBal.games_breakdown[slug].deposits_count || 0,
+        current.games_breakdown[slug].deposits_count
+      );
+      afBal.games_breakdown[slug].total_deposited = Math.max(
+        afBal.games_breakdown[slug].total_deposited || 0,
+        current.games_breakdown[slug].total_deposited
+      );
+      afBal.games_breakdown[slug].commission_earned = Math.max(
+        afBal.games_breakdown[slug].commission_earned || 0,
+        current.games_breakdown[slug].commission_earned
+      );
+      afBal.games_breakdown[slug].available_balance = Math.max(
+        afBal.games_breakdown[slug].available_balance || 0,
+        current.games_breakdown[slug].available_balance
+      );
     }
+    recalculateAffiliateTotals(afBal);
   }
 
   saveStoreToFile();
@@ -498,15 +589,17 @@ export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliat
     global.__KRS_SERVER_BALANCES__ = {};
   }
 
-  // Check if any alias already has a balance
-  for (const a of aliases) {
-    if (global.__KRS_SERVER_BALANCES__[a] && a !== code) {
-      const aliasBal = global.__KRS_SERVER_BALANCES__[a];
-      global.__KRS_SERVER_BALANCES__[code] = {
-        ...aliasBal,
-        affiliate_code: code,
-      };
-      return global.__KRS_SERVER_BALANCES__[code];
+  // Se o código ainda não tem saldo gravado, busca se há alias para herdar estado inicial
+  if (!global.__KRS_SERVER_BALANCES__[code]) {
+    for (const a of aliases) {
+      if (global.__KRS_SERVER_BALANCES__[a] && a !== code) {
+        const aliasBal = global.__KRS_SERVER_BALANCES__[a];
+        global.__KRS_SERVER_BALANCES__[code] = {
+          ...aliasBal,
+          affiliate_code: code,
+        };
+        break;
+      }
     }
   }
 
@@ -523,7 +616,7 @@ export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliat
 
   const bal = global.__KRS_SERVER_BALANCES__[code];
 
-  // Guarantee all games are present
+  // Guarantee all games are present and totals are perfectly aggregated
   const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash"];
   for (const s of standardSlugs) {
     if (!bal.games_breakdown[s]) {
@@ -531,6 +624,7 @@ export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliat
     }
   }
 
+  recalculateAffiliateTotals(bal);
   return bal;
 }
 
@@ -678,17 +772,13 @@ export async function reconcileExternalGameStats(affiliateCode: string): Promise
       fc.available_balance = Math.max(fc.available_balance || 0, fruitCashData.available_balance || 0);
 
       balance.games_breakdown["fruit-cash"] = fc;
-      balance.available_balance = Math.max(balance.available_balance || 0, fc.available_balance);
-      balance.vizzion_balance = Math.max(balance.vizzion_balance || 0, fc.available_balance);
-      balance.total_signups = Math.max(balance.total_signups || 0, fc.signups);
-      balance.total_leads = Math.max(balance.total_leads || 0, fc.signups + fc.deposits_count);
 
       // Injeta conversões de depósito
       if (Array.isArray(fruitCashData.deposits)) {
         for (const dep of fruitCashData.deposits) {
           const existing = (global.__KRS_SERVER_CONVERSIONS__ || []).find((c) => c.transaction_id === dep.transaction_id || c.id === dep.id);
           if (!existing) {
-            global.__KRS_SERVER_CONVERSIONS__ = [dep, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 200);
+            global.__KRS_SERVER_CONVERSIONS__ = [dep, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 300);
           } else {
             existing.affiliate_code = code;
           }
@@ -718,7 +808,7 @@ export async function reconcileExternalGameStats(affiliateCode: string): Promise
               status: "available_for_pix_withdrawal",
               received_at: lead.created_at,
             };
-            global.__KRS_SERVER_CONVERSIONS__ = [signupConv, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 200);
+            global.__KRS_SERVER_CONVERSIONS__ = [signupConv, ...(global.__KRS_SERVER_CONVERSIONS__ || [])].slice(0, 300);
           }
         }
       }
@@ -732,16 +822,26 @@ export async function reconcileExternalGameStats(affiliateCode: string): Promise
     const cloudData = await fetchCreatorFromFirebase(code);
     if (cloudData) {
       updated = true;
-      if (typeof cloudData.available_balance === "number") {
-        balance.available_balance = Math.max(balance.available_balance, cloudData.available_balance);
-      }
-      if (typeof cloudData.total_leads === "number") {
-        balance.total_leads = Math.max(balance.total_leads, cloudData.total_leads);
+      if (cloudData.games_breakdown && typeof cloudData.games_breakdown === "object") {
+        for (const [k, v] of Object.entries(cloudData.games_breakdown as Record<string, any>)) {
+          const normKey = normalizeGameSlug(k);
+          if (!balance.games_breakdown[normKey]) {
+            balance.games_breakdown[normKey] = createDefaultGameMetrics(normKey);
+          }
+          const gm = balance.games_breakdown[normKey];
+          if (typeof v.clicks === "number") gm.clicks = Math.max(gm.clicks || 0, v.clicks);
+          if (typeof v.signups === "number") gm.signups = Math.max(gm.signups || 0, v.signups);
+          if (typeof v.deposits_count === "number") gm.deposits_count = Math.max(gm.deposits_count || 0, v.deposits_count);
+          if (typeof v.total_deposited === "number") gm.total_deposited = Math.max(gm.total_deposited || 0, v.total_deposited);
+          if (typeof v.commission_earned === "number") gm.commission_earned = Math.max(gm.commission_earned || 0, v.commission_earned);
+          if (typeof v.available_balance === "number") gm.available_balance = Math.max(gm.available_balance || 0, v.available_balance);
+        }
       }
     }
   } catch (_) {}
 
-  balance.updated_at = new Date().toISOString();
+  // Recalcula matematicamente todos os 4 jogos consolidados (Fruit Cash + KRS 777 + Blockerino + Bubble Cash)
+  recalculateAffiliateTotals(balance);
 
   if (!global.__KRS_SERVER_BALANCES__) {
     global.__KRS_SERVER_BALANCES__ = {};
@@ -758,24 +858,60 @@ export async function reconcileExternalGameStats(affiliateCode: string): Promise
 export function deductServerAffiliateBalance(
   affiliateCode: string,
   amount: number,
-  gatewayUsed: "omegapay" | "vizzionpay"
+  gatewayUsed: "omegapay" | "vizzionpay",
+  gameSlug?: string
 ): StoredAffiliateBalance {
   const code = affiliateCode.toLowerCase().trim();
   const balance = getServerAffiliateBalance(code);
-  balance.available_balance = Math.max(0, balance.available_balance - amount);
-  balance.total_withdrawn_pix += amount;
+  balance.total_withdrawn_pix = Number(((balance.total_withdrawn_pix || 0) + amount).toFixed(2));
+
+  // Se o saque for específico de um jogo, desconta daquele jogo
+  if (gameSlug && gameSlug !== "all") {
+    const norm = normalizeGameSlug(gameSlug);
+    if (balance.games_breakdown[norm]) {
+      const cur = balance.games_breakdown[norm].available_balance || 0;
+      balance.games_breakdown[norm].available_balance = Math.max(0, Number((cur - amount).toFixed(2)));
+    }
+  } else {
+    // Se for consolidado ("all"), desconta distribuindo pelos jogos com saldo positivo
+    let remainingToDeduct = amount;
+    for (const slug of Object.keys(balance.games_breakdown)) {
+      if (remainingToDeduct <= 0) break;
+      const gameAvail = balance.games_breakdown[slug].available_balance || 0;
+      if (gameAvail > 0) {
+        const deductFromGame = Math.min(gameAvail, remainingToDeduct);
+        balance.games_breakdown[slug].available_balance = Number((gameAvail - deductFromGame).toFixed(2));
+        remainingToDeduct = Number((remainingToDeduct - deductFromGame).toFixed(2));
+      }
+    }
+  }
 
   if (gatewayUsed === "omegapay") {
-    balance.omega_balance = Math.max(0, (balance.omega_balance || 0) - amount);
+    balance.omega_balance = Math.max(0, Number(((balance.omega_balance || 0) - amount).toFixed(2)));
   } else {
-    balance.vizzion_balance = Math.max(0, (balance.vizzion_balance || 0) - amount);
+    balance.vizzion_balance = Math.max(0, Number(((balance.vizzion_balance || 0) - amount).toFixed(2)));
   }
 
-  balance.updated_at = new Date().toISOString();
+  // Recalcula matematicamente os totais consolidados
+  recalculateAffiliateTotals(balance);
 
-  if (global.__KRS_SERVER_BALANCES__) {
-    global.__KRS_SERVER_BALANCES__[code] = balance;
+  if (!global.__KRS_SERVER_BALANCES__) {
+    global.__KRS_SERVER_BALANCES__ = {};
   }
+  global.__KRS_SERVER_BALANCES__[code] = balance;
+
+  // Espelha para alias se for 'diseguro20'
+  if (code === "diseguro20" && global.__KRS_SERVER_BALANCES__["afiliado"]) {
+    const afBal = global.__KRS_SERVER_BALANCES__["afiliado"];
+    afBal.total_withdrawn_pix = balance.total_withdrawn_pix;
+    for (const [k, v] of Object.entries(balance.games_breakdown)) {
+      if (afBal.games_breakdown[k]) {
+        afBal.games_breakdown[k].available_balance = v.available_balance;
+      }
+    }
+    recalculateAffiliateTotals(afBal);
+  }
+
   saveStoreToFile();
   return balance;
 }

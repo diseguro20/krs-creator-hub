@@ -116,8 +116,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Atualiza e deduz o saldo no servidor
-    deductServerAffiliateBalance(affiliate_code, numAmount, resolvedGateway);
+    // Atualiza e deduz o saldo no servidor com precisão por jogo e no consolidado
+    deductServerAffiliateBalance(affiliate_code, numAmount, resolvedGateway, game_id);
 
     // Resposta 100% sigilosa para o cliente (sem qualquer menção a nomes de gateways)
     return NextResponse.json({
