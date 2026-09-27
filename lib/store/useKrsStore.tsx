@@ -238,9 +238,31 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
         if (parsed.referrals) setReferrals(parsed.referrals);
         if (parsed.notifications) setNotifications(parsed.notifications);
         if (parsed.activityLogs) setActivityLogs(parsed.activityLogs);
-        if (parsed.settings) setSettings(parsed.settings);
-        if (parsed.affiliateStats) setAffiliateStats(parsed.affiliateStats);
-        if (parsed.affiliateConversions) setAffiliateConversions(parsed.affiliateConversions);
+        if (parsed.affiliateStats) {
+          const mergedStats = SEED_AFFILIATE_STATS.map((seed) => {
+            const existing = (parsed.affiliateStats as GameAffiliateStats[])?.find(
+              (s) => s.game_id === seed.game_id || s.game_slug === seed.game_slug
+            );
+            if (!existing) return seed;
+            return {
+              ...seed,
+              clicks: Math.max(existing.clicks || 0, seed.clicks),
+              signups: Math.max(existing.signups || 0, seed.signups),
+              deposits_count: Math.max(existing.deposits_count || 0, seed.deposits_count),
+              total_deposited: Math.max(existing.total_deposited || 0, seed.total_deposited),
+              commission_earned: Math.max(existing.commission_earned || 0, seed.commission_earned),
+              available_balance: Math.max(existing.available_balance || 0, seed.available_balance),
+            };
+          });
+          setAffiliateStats(mergedStats);
+        } else {
+          setAffiliateStats(SEED_AFFILIATE_STATS);
+        }
+        if (parsed.affiliateConversions && Array.isArray(parsed.affiliateConversions) && parsed.affiliateConversions.length > 0) {
+          setAffiliateConversions(parsed.affiliateConversions);
+        } else {
+          setAffiliateConversions(SEED_AFFILIATE_CONVERSIONS);
+        }
       } else {
         setCurrentUser(null);
       }

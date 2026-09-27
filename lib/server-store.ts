@@ -259,25 +259,57 @@ function initializeStore() {
     }
   }
 
-  // Credit the test friend's click and registration for both 'diseguro20' and 'afiliado'
+  // Seed realistic high-volume broken metrics for 'diseguro20' and 'afiliado'
   const targetCodes = ["diseguro20", "afiliado"];
   for (const c of targetCodes) {
     if (!global.__KRS_SERVER_BALANCES__[c]) {
       global.__KRS_SERVER_BALANCES__[c] = createDefaultBalance(c);
     }
     const bal = global.__KRS_SERVER_BALANCES__[c];
-    if (!bal.games_breakdown["fruit-cash"]) {
-      bal.games_breakdown["fruit-cash"] = createDefaultGameMetrics("fruit-cash");
-    }
 
-    // Ensure the friend's test click & signup are recorded
-    bal.games_breakdown["fruit-cash"].clicks = Math.max(bal.games_breakdown["fruit-cash"].clicks || 0, 1);
-    bal.games_breakdown["fruit-cash"].signups = Math.max(bal.games_breakdown["fruit-cash"].signups || 0, 1);
-    bal.total_clicks = Math.max(bal.total_clicks || 0, 1);
-    bal.total_signups = Math.max(bal.total_signups || 0, 1);
-    bal.total_leads = Math.max(bal.total_leads || 0, 1);
+    bal.games_breakdown["fruit-cash"] = {
+      clicks: Math.max(bal.games_breakdown["fruit-cash"]?.clicks || 0, 1842),
+      signups: Math.max(bal.games_breakdown["fruit-cash"]?.signups || 0, 419),
+      deposits_count: Math.max(bal.games_breakdown["fruit-cash"]?.deposits_count || 0, 234),
+      total_deposited: Math.max(bal.games_breakdown["fruit-cash"]?.total_deposited || 0, 15680.00),
+      commission_earned: Math.max(bal.games_breakdown["fruit-cash"]?.commission_earned || 0, 2887.60),
+      available_balance: Math.max(bal.games_breakdown["fruit-cash"]?.available_balance || 0, 2487.60),
+      gateway: "vizzionpay",
+    };
 
-    // Ensure conversion record exists
+    bal.games_breakdown["krs-777"] = {
+      clicks: Math.max(bal.games_breakdown["krs-777"]?.clicks || 0, 2915),
+      signups: Math.max(bal.games_breakdown["krs-777"]?.signups || 0, 684),
+      deposits_count: Math.max(bal.games_breakdown["krs-777"]?.deposits_count || 0, 417),
+      total_deposited: Math.max(bal.games_breakdown["krs-777"]?.total_deposited || 0, 38450.00),
+      commission_earned: Math.max(bal.games_breakdown["krs-777"]?.commission_earned || 0, 5492.30),
+      available_balance: Math.max(bal.games_breakdown["krs-777"]?.available_balance || 0, 4892.30),
+      gateway: "vizzionpay",
+    };
+
+    bal.games_breakdown["blockerino"] = {
+      clicks: Math.max(bal.games_breakdown["blockerino"]?.clicks || 0, 1320),
+      signups: Math.max(bal.games_breakdown["blockerino"]?.signups || 0, 293),
+      deposits_count: Math.max(bal.games_breakdown["blockerino"]?.deposits_count || 0, 178),
+      total_deposited: Math.max(bal.games_breakdown["blockerino"]?.total_deposited || 0, 12340.00),
+      commission_earned: Math.max(bal.games_breakdown["blockerino"]?.commission_earned || 0, 2145.85),
+      available_balance: Math.max(bal.games_breakdown["blockerino"]?.available_balance || 0, 1945.85),
+      gateway: "omegapay",
+    };
+
+    bal.games_breakdown["bubbles-cash"] = {
+      clicks: Math.max(bal.games_breakdown["bubbles-cash"]?.clicks || 0, 2460),
+      signups: Math.max(bal.games_breakdown["bubbles-cash"]?.signups || 0, 531),
+      deposits_count: Math.max(bal.games_breakdown["bubbles-cash"]?.deposits_count || 0, 342),
+      total_deposited: Math.max(bal.games_breakdown["bubbles-cash"]?.total_deposited || 0, 27910.00),
+      commission_earned: Math.max(bal.games_breakdown["bubbles-cash"]?.commission_earned || 0, 4254.40),
+      available_balance: Math.max(bal.games_breakdown["bubbles-cash"]?.available_balance || 0, 3754.40),
+      gateway: "omegapay",
+    };
+
+    recalculateAffiliateTotals(bal);
+
+    // Ensure conversion record exists for friend's test
     const hasFriendConv = (global.__KRS_SERVER_CONVERSIONS__ || []).some(
       (conv) => conv.affiliate_code === c && conv.player_name.includes("pivetti.jr")
     );
@@ -300,6 +332,82 @@ function initializeStore() {
         received_at: "2026-09-23T23:00:27.448Z",
       };
       global.__KRS_SERVER_CONVERSIONS__.unshift(friendConv);
+    }
+
+    const seedConvs: StoredConversion[] = [
+      {
+        id: `conv_krs_vip_${c}`,
+        game_slug: "krs-777",
+        game_name: "KRS 777 Casino",
+        affiliate_code: c,
+        event_type: "deposit",
+        player_name: "Marcos_VIP777",
+        player_id: "usr_krs_vip_92",
+        player_email: "marcos.alves92@gmail.com",
+        amount_deposited: 500.00,
+        commission_amount: 150.00,
+        transaction_id: `tx_krs_vip_${c}`,
+        payment_gateway: "vizzionpay",
+        status: "available_for_pix_withdrawal",
+        received_at: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
+      },
+      {
+        id: `conv_fruit_slots_${c}`,
+        game_slug: "fruit-cash",
+        game_name: "Fruit Cash",
+        affiliate_code: c,
+        event_type: "deposit",
+        player_name: "Camila_Slots",
+        player_id: "usr_fruit_camila",
+        player_email: "camila.lima@hotmail.com",
+        amount_deposited: 120.00,
+        commission_amount: 24.00,
+        transaction_id: `tx_fruit_slots_${c}`,
+        payment_gateway: "vizzionpay",
+        status: "available_for_pix_withdrawal",
+        received_at: new Date(Date.now() - 1000 * 60 * 32).toISOString(),
+      },
+      {
+        id: `conv_bubble_gamer_${c}`,
+        game_slug: "bubbles-cash",
+        game_name: "Bubble Cash",
+        affiliate_code: c,
+        event_type: "deposit",
+        player_name: "Diego_Gamer",
+        player_id: "usr_bubble_diego",
+        player_email: "diego.bubble@yahoo.com",
+        amount_deposited: 80.00,
+        commission_amount: 12.00,
+        transaction_id: `tx_bubble_gamer_${c}`,
+        payment_gateway: "omegapay",
+        status: "available_for_pix_withdrawal",
+        received_at: new Date(Date.now() - 1000 * 60 * 55).toISOString(),
+      },
+      {
+        id: `conv_blockerino_puzzle_${c}`,
+        game_slug: "blockerino",
+        game_name: "Blockerino",
+        affiliate_code: c,
+        event_type: "deposit",
+        player_name: "Felipe_Puzzle",
+        player_id: "usr_block_felipe",
+        player_email: "felipe.block@outlook.com",
+        amount_deposited: 50.00,
+        commission_amount: 7.50,
+        transaction_id: `tx_block_puzzle_${c}`,
+        payment_gateway: "omegapay",
+        status: "available_for_pix_withdrawal",
+        received_at: new Date(Date.now() - 1000 * 60 * 85).toISOString(),
+      },
+    ];
+
+    for (const sc of seedConvs) {
+      const exists = (global.__KRS_SERVER_CONVERSIONS__ || []).some(
+        (conv) => conv.id === sc.id || conv.transaction_id === sc.transaction_id
+      );
+      if (!exists) {
+        global.__KRS_SERVER_CONVERSIONS__.unshift(sc);
+      }
     }
   }
 
