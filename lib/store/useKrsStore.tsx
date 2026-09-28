@@ -227,7 +227,17 @@ export function KrsStoreProvider({ children }: { children: React.ReactNode }) {
           } catch (_) {}
         }
 
-        if (parsed.games) setGames(parsed.games);
+        if (parsed.games && Array.isArray(parsed.games)) {
+          const mergedGames = [...parsed.games];
+          for (const sg of SEED_GAMES) {
+            if (!mergedGames.some((g) => g.slug === sg.slug || g.id === sg.id)) {
+              mergedGames.push(sg);
+            }
+          }
+          setGames(mergedGames);
+        } else {
+          setGames(SEED_GAMES);
+        }
         if (parsed.campaigns) setCampaigns(parsed.campaigns);
         if (parsed.creatorCampaigns) setCreatorCampaigns(parsed.creatorCampaigns);
         if (parsed.submissions) setSubmissions(parsed.submissions);

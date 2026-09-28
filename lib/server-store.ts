@@ -113,6 +113,7 @@ function normalizeGameSlug(rawSlug?: string): string {
   if (s.includes("777")) return "krs-777";
   if (s.includes("block")) return "blockerino";
   if (s.includes("bubble")) return "bubbles-cash";
+  if (s.includes("salto")) return "salto-cash";
   return s;
 }
 
@@ -146,6 +147,7 @@ export function createDefaultBalance(code: string): StoredAffiliateBalance {
       "krs-777": createDefaultGameMetrics("krs-777"),
       "blockerino": createDefaultGameMetrics("blockerino"),
       "bubbles-cash": createDefaultGameMetrics("bubbles-cash"),
+      "salto-cash": createDefaultGameMetrics("salto-cash"),
     },
     updated_at: new Date().toISOString(),
   };
@@ -305,6 +307,16 @@ function initializeStore() {
       commission_earned: Math.max(bal.games_breakdown["bubbles-cash"]?.commission_earned || 0, 4254.40),
       available_balance: Math.max(bal.games_breakdown["bubbles-cash"]?.available_balance || 0, 3754.40),
       gateway: "omegapay",
+    };
+
+    bal.games_breakdown["salto-cash"] = {
+      clicks: Math.max(bal.games_breakdown["salto-cash"]?.clicks || 0, 1650),
+      signups: Math.max(bal.games_breakdown["salto-cash"]?.signups || 0, 380),
+      deposits_count: Math.max(bal.games_breakdown["salto-cash"]?.deposits_count || 0, 215),
+      total_deposited: Math.max(bal.games_breakdown["salto-cash"]?.total_deposited || 0, 18450.00),
+      commission_earned: Math.max(bal.games_breakdown["salto-cash"]?.commission_earned || 0, 2760.00),
+      available_balance: Math.max(bal.games_breakdown["salto-cash"]?.available_balance || 0, 2460.00),
+      gateway: "vizzionpay",
     };
 
     recalculateAffiliateTotals(bal);
@@ -481,7 +493,7 @@ export function resolveLeadGateway(params: {
  * Garante que nenhum clique, cadastro, depósito ou centavo de comissão seja perdido ou sobreposto.
  */
 export function recalculateAffiliateTotals(bal: StoredAffiliateBalance): StoredAffiliateBalance {
-  const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash"];
+  const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash", "salto-cash"];
 
   if (!bal.games_breakdown) {
     bal.games_breakdown = {};
@@ -725,7 +737,7 @@ export function getServerAffiliateBalance(affiliateCode: string): StoredAffiliat
   const bal = global.__KRS_SERVER_BALANCES__[code];
 
   // Guarantee all games are present and totals are perfectly aggregated
-  const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash"];
+  const standardSlugs = ["fruit-cash", "krs-777", "blockerino", "bubbles-cash", "salto-cash"];
   for (const s of standardSlugs) {
     if (!bal.games_breakdown[s]) {
       bal.games_breakdown[s] = createDefaultGameMetrics(s);

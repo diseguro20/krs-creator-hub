@@ -33,6 +33,16 @@ const GAME_DESTINATIONS: Record<
     param: "ref",
     defaultSlug: "bubbles-cash",
   },
+  "salto-cash": {
+    baseUrl: "https://saltocash-platform.vercel.app/",
+    param: "ref",
+    defaultSlug: "salto-cash",
+  },
+  "saltocash": {
+    baseUrl: "https://saltocash-platform.vercel.app/",
+    param: "ref",
+    defaultSlug: "salto-cash",
+  },
 };
 
 export async function GET(
@@ -53,6 +63,7 @@ export async function GET(
       else if (rawGameSlug.includes("777")) configKey = "krs-777";
       else if (rawGameSlug.includes("block")) configKey = "blockerino";
       else if (rawGameSlug.includes("bubble")) configKey = "bubbles-cash";
+      else if (rawGameSlug.includes("salto")) configKey = "salto-cash";
       else configKey = "fruit-cash";
     }
 

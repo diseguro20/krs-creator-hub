@@ -286,12 +286,12 @@
     "diseguro20": {
       "affiliate_code": "diseguro20",
       "total_withdrawn_pix": 1700,
-      "available_balance": 13080.15,
+      "available_balance": 15540.15,
       "omega_balance": 5700.25,
-      "vizzion_balance": 7379.9,
-      "total_leads": 3098,
-      "total_clicks": 8537,
-      "total_signups": 1927,
+      "vizzion_balance": 9839.9,
+      "total_leads": 3693,
+      "total_clicks": 10187,
+      "total_signups": 2307,
       "games_breakdown": {
         "fruit-cash": {
           "clicks": 1842,
@@ -328,19 +328,28 @@
           "commission_earned": 4254.4,
           "available_balance": 3754.4,
           "gateway": "omegapay"
+        },
+        "salto-cash": {
+          "clicks": 1650,
+          "signups": 380,
+          "deposits_count": 215,
+          "total_deposited": 18450,
+          "commission_earned": 2760,
+          "available_balance": 2460,
+          "gateway": "vizzionpay"
         }
       },
-      "updated_at": "2026-09-27T00:55:09.043Z"
+      "updated_at": "2026-09-28T18:15:15.737Z"
     },
     "afiliado": {
       "affiliate_code": "afiliado",
       "total_withdrawn_pix": 1700,
-      "available_balance": 13080.15,
+      "available_balance": 15540.15,
       "omega_balance": 5700.25,
-      "vizzion_balance": 7379.9,
-      "total_leads": 3098,
-      "total_clicks": 8537,
-      "total_signups": 1927,
+      "vizzion_balance": 9839.9,
+      "total_leads": 3693,
+      "total_clicks": 10187,
+      "total_signups": 2307,
       "games_breakdown": {
         "fruit-cash": {
           "clicks": 1842,
@@ -377,9 +386,18 @@
           "commission_earned": 4254.4,
           "available_balance": 3754.4,
           "gateway": "omegapay"
+        },
+        "salto-cash": {
+          "clicks": 1650,
+          "signups": 380,
+          "deposits_count": 215,
+          "total_deposited": 18450,
+          "commission_earned": 2760,
+          "available_balance": 2460,
+          "gateway": "vizzionpay"
         }
       },
-      "updated_at": "2026-09-27T00:54:51.495Z"
+      "updated_at": "2026-09-28T18:15:15.738Z"
     },
     "pivettij177": {
       "affiliate_code": "pivettij177",
@@ -524,5 +542,5 @@
       "reviewed_by": "Administrador Master"
     }
   ],
-  "saved_at": "2026-09-27T00:55:09.043Z"
+  "saved_at": "2026-09-28T18:15:15.738Z"
 }
