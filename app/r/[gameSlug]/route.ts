@@ -238,7 +238,10 @@ export async function GET(
         status: 200,
         headers: {
           "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "public, max-age=3600, s-maxage=3600",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Vary": "User-Agent",
+          "Pragma": "no-cache",
+          "Expires": "0",
         },
       });
     }
@@ -255,6 +258,7 @@ export async function GET(
       status: 307,
       headers: {
         "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+        "Vary": "User-Agent",
         Pragma: "no-cache",
         Expires: "0",
       },
