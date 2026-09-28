@@ -339,7 +339,7 @@
           "gateway": "vizzionpay"
         }
       },
-      "updated_at": "2026-09-28T18:15:15.737Z"
+      "updated_at": "2026-09-28T21:54:02.007Z"
     },
     "afiliado": {
       "affiliate_code": "afiliado",
@@ -397,7 +397,7 @@
           "gateway": "vizzionpay"
         }
       },
-      "updated_at": "2026-09-28T18:15:15.738Z"
+      "updated_at": "2026-09-28T21:54:02.008Z"
     },
     "pivettij177": {
       "affiliate_code": "pivettij177",
@@ -542,5 +542,5 @@
       "reviewed_by": "Administrador Master"
     }
   ],
-  "saved_at": "2026-09-28T18:15:15.738Z"
+  "saved_at": "2026-09-28T21:54:02.008Z"
 }
